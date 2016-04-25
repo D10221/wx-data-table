@@ -1,0 +1,26 @@
+{
+  "name": "wx-data-table",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "lodash": "^4.11.1",
+    "moment": "^2.13.0",
+    "rx": "^4.1.0",
+    "webrx": "^1.5.0",
+    "whatwg-fetch": "^0.11.0"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "material-design-lite-oob": "git+https://git@github.com/D10221/material-design-lite-oob.git",
+    "mocha": "^2.4.5",
+    "ts-loader": "^0.8.2",
+    "typescript": "^1.8.10",
+    "uninstall": "0.0.0-reserved"
+  }
+}
