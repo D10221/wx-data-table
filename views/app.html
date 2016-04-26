@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Title</title>
+    <link rel="stylesheet" href="../node_modules/material-design-lite-oob/res/material.min.css">
+
+    <style>
+        @font-face {
+            font-family: 'Material Icons';
+            font-style: normal;
+            font-weight: 400;
+            src: url('../node_modules/material-design-lite-oob/res/iconfont/MaterialIcons-Regular.eot'); /* For IE6-8 */
+            src: local('Material Icons'),
+            local('MaterialIcons-Regular'),
+            url('../node_modules/material-design-lite-oob/res/iconfont/MaterialIcons-Regular.woff2') format('woff2'),
+            url('../node_modules/material-design-lite-oob/res/iconfont/MaterialIcons-Regular.woff') format('woff'),
+            url('../node_modules/material-design-lite-oob/res/iconfont/MaterialIcons-Regular.ttf') format('truetype');
+        }
+
+        .material-icons {
+            font-family: 'Material Icons', monospace;
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+        }
+    </style>
+</head>
+<body>
+<main id="main-view" class="mdl-layout__content" style="width: 100%">
+    <div data-bind="with: @dataSource" style="width: 100%">
+        <div  data-bind="component: { name: 'data-table' , params: $data }"></div>
+    </div>
+</main>
+
+<link rel="import" href="templates.html" id="data-table-templates" >
+
+<script src="../node_modules/material-design-lite-oob/res/material.min.js"></script>
+<script src="../node_modules/moment/moment.js"></script>
+
+<script src="../node_modules/rx/dist/rx.all.js" ></script>
+<script src="../node_modules/webrx/dist/web.rx.js" ></script>
+<script src="../built/bundle.js"></script>
+</body>
+</html>
