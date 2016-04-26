@@ -95,7 +95,7 @@ export class TableCtrl extends ViewModelBase {
 
         for(var item of dataSource.items){
 
-            var row = new Row(`row_${rowIndex++}`);
+            var row = new Row(`${dataSource.key}_row_${rowIndex++}`);
 
             for(var column of table.columns.toArray()){
 
@@ -111,8 +111,8 @@ export class TableCtrl extends ViewModelBase {
 
                     layouts.save(this.table());
 
-                    this.onNextEvent("table-tableLayout-changed", true);
-                })
+                    this.onNextEvent("table-layout-changed", true);
+                });
                 
                 row.elements.push(cell);
             }
