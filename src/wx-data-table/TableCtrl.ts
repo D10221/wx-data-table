@@ -1,51 +1,14 @@
 
 import {DataSource} from "./interfaces";
-
 import {Table, Column, Row, Cell} from "./tx-data-table";
-
 import {ViewModelBase} from "./viewModelBase";
+import {layouts } from "./Layouts";
+
 import LoDashStatic = _.LoDashStatic;
-import {TableElementLayout} from "./table_component";
 
 var _ = require('lodash') as LoDashStatic;
 
-class Layouts {
 
-    static restore(table:Table) {
-        var x = localStorage.getItem(`table_${table.key}`);
-        if(x){
-            return table.setLayout(x);
-        }
-    }
-    
-    static save(table:Table){
-        localStorage.setItem(`table_${table.key}`, table.getLayout());
-    }
-    
-    getTable(key:string) : TableElementLayout  {
-        return this.fromJson(localStorage.getItem(`table_${key}`));
-    }
-    
-    fromJson(json:string) : TableElementLayout{
-        var element = JSON.parse(json);
-        if(!element || !element.elements) return element ;
-        element.elements = element.elements.map(e=> this.fromJson(e));
-        return element
-    }
-    
-    getColumn : (dataSourceKey:string,columnKey : string) => any = (dataSourceKey,columnKey) => {
-        var table = this.getTable(dataSourceKey);
-        if(!table || ! table.elements) return null;
-        
-        var found = _.find(table.elements, row =>  _.some(row.elements, cell=> cell.key == columnKey) != null );
-        return found ?  
-            _.find(found.elements, x=>x.key == columnKey )
-            : null ;
-    }
-    
-}
-
-var layouts = new Layouts();
 
 export class TableCtrl extends ViewModelBase {
 
@@ -61,17 +24,26 @@ export class TableCtrl extends ViewModelBase {
         }
 
         var table  = new Table(dataSource.key);
+
         table.header = dataSource.key;
         
         var first = dataSource.items[0];
                  
         var columns : Column[] = [] ; 
+
         for(var key in first){
 
             var column = new Column(key);
-            column.header = key;
+            
             var x= layouts.getColumn(dataSource.key, column.key);
-            column.index( x && x.index ? x.index : columns.length );             
+            if (x ) {
+                column.setLayout(JSON.stringify(x));
+            } else{
+                column.index( columns.length );
+            }
+            
+            column.header = `${key} ${column.index()}`;
+            
             columns.push(column);
         }
         
@@ -88,11 +60,10 @@ export class TableCtrl extends ViewModelBase {
                 var cell = new Cell(column.key, item[column.key]);
                 cell.index(column.index());
                 cell.parent = row;
-
+                cell.visibility(column.visibility());
+                
                 this.addTwoWaySubscribtion(column.visibility, cell.visibility);
-
                 this.addTwoWaySubscribtion(column.index, cell.index);
-
                 row.elements.push(cell);
             }
 
@@ -102,8 +73,12 @@ export class TableCtrl extends ViewModelBase {
         table.columns.forEach(column=> {
                          
             this.addSubscription(column.index.changed.take(1),()=>{
-                Layouts.save(this.table());
+                layouts.save(this.table());
                 this.onNextEvent("table-layout-changed", true);
+            })
+            
+            this.addSubscription(column.visibility.changed.take(1),()=>{
+                layouts.save(this.table());
             })
         });
         

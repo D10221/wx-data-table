@@ -13,3 +13,13 @@ export interface KeyValue {
     key:string;
     value:any;
 }
+
+
+export interface TableElementLayout {
+    key: string ;
+    index: number,
+    visibility: Visibility,
+    enabled: boolean,
+    selected: boolean,
+    elements : TableElementLayout[]
+}

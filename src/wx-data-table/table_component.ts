@@ -81,25 +81,17 @@ export class TableElement extends ViewModelBase implements Rx.IDisposable {
     }
 
     public setLayout(json:string) {
-        var x = JSON.parse(json);
-        this.key = x.key;
-        this.index(x.index);
-        this.visibility(x.visibility);
-        this.enabled(x.enabled);
-        this.isSelected(x.selected);
+        var layout = JSON.parse(json);
+        this.key = layout.key;
+        this.index(layout.index);
+        this.visibility(layout.visibility);
+        this.enabled(layout.enabled);
+        this.isSelected(layout.selected);
         for(var element of this.elements.toArray()){
-            element.setLayout(x.elements);
+            element.setLayout(layout.elements);
         }
     }
 }
 
-export interface TableElementLayout {
-    key: string ; 
-    index: number,
-    visibility: Visibility,
-    enabled: boolean,
-    selected: boolean,
-    elements : TableElementLayout[]
-}
 
 
