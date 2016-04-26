@@ -68,14 +68,9 @@ export class TableCtrl extends ViewModelBase {
 
         table.header = dataSource.key;
 
-        var rowIndex = 0 ;
-
+        
         var first = dataSource.items[0];
-
-
-        var index = 1;
-
-
+        
         var layout = layouts.getTable(dataSource.key);
         
         var columns : Column[] = [] ; 
@@ -84,8 +79,7 @@ export class TableCtrl extends ViewModelBase {
             var column = new Column(key);
             column.header = key;
             var x= layouts.getColumn(dataSource.key, column.key);
-            column.index( x && x.index ? x.index : index );
-            index++;
+            column.index( x && x.index ? x.index : columns.length );             
             columns.push(column);
         }
         
@@ -95,7 +89,7 @@ export class TableCtrl extends ViewModelBase {
 
         for(var item of dataSource.items){
 
-            var row = new Row(`${dataSource.key}_row_${rowIndex++}`);
+            var row = new Row(`${dataSource.key}_row_${table.elements.length()}`);
 
             for(var column of table.columns.toArray()){
 
@@ -107,7 +101,7 @@ export class TableCtrl extends ViewModelBase {
                 
                 this.addTwoWaySubscribtion(column.index, cell.index);
 
-                column.index.changed.take(1).subscribe(()=>{
+                this.addSubscription(column.index.changed.take(1),()=>{
 
                     layouts.save(this.table());
 
