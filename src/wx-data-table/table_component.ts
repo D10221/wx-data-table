@@ -69,18 +69,18 @@ export class TableElement extends ViewModelBase implements Rx.IDisposable {
         }
     });
 
-    public toJson():string {
+    public getLayout():string {
         return JSON.stringify({
             key: this.key,
             index: this.index(),
             visibility: this.visibility(),
             enabled: this.enabled(),
             selected: this.isSelected(),
-            elements : this.elements.map(x=> x.toJson())
+            elements : this.elements.map(x=> x.getLayout())
         });
     }
 
-    public fromJson(json:string) {
+    public setLayout(json:string) {
         var x = JSON.parse(json);
         this.key = x.key;
         this.index(x.index);
@@ -88,7 +88,7 @@ export class TableElement extends ViewModelBase implements Rx.IDisposable {
         this.enabled(x.enabled);
         this.isSelected(x.selected);
         for(var element of this.elements.toArray()){
-            element.fromJson(x.elements);
+            element.setLayout(x.elements);
         }
     }
 }

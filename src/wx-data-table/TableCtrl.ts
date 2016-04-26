@@ -11,14 +11,15 @@ var _ = require('lodash') as LoDashStatic;
 
 class Layouts {
 
-    restore(table:Table) {
+    static restore(table:Table) {
         var x = localStorage.getItem(`table_${table.key}`);
         if(x){
-            return table.fromJson(x);
+            return table.setLayout(x);
         }
     }
-    save(table:Table){
-        localStorage.setItem(`table_${table.key}`, table.toJson());
+    
+    static save(table:Table){
+        localStorage.setItem(`table_${table.key}`, table.getLayout());
     }
     
     getTable(key:string) : TableElementLayout  {
@@ -26,7 +27,6 @@ class Layouts {
     }
     
     fromJson(json:string) : TableElementLayout{
-
         var element = JSON.parse(json);
         if(!element || !element.elements) return element ;
         element.elements = element.elements.map(e=> this.fromJson(e));
@@ -42,7 +42,6 @@ class Layouts {
             _.find(found.elements, x=>x.key == columnKey )
             : null ;
     }
-    
     
 }
 
@@ -61,18 +60,11 @@ export class TableCtrl extends ViewModelBase {
             dataSource.hook(this);
         }
 
-        this.current.dispose();
-        this.current = new Rx.CompositeDisposable();
-
         var table  = new Table(dataSource.key);
-
         table.header = dataSource.key;
-
         
         var first = dataSource.items[0];
-        
-        var layout = layouts.getTable(dataSource.key);
-        
+                 
         var columns : Column[] = [] ; 
         for(var key in first){
 
@@ -91,32 +83,32 @@ export class TableCtrl extends ViewModelBase {
 
             var row = new Row(`${dataSource.key}_row_${table.elements.length()}`);
 
-            for(var column of table.columns.toArray()){
+            for(var column of columns){
 
                 var cell = new Cell(column.key, item[column.key]);
                 cell.index(column.index());
                 cell.parent = row;
 
                 this.addTwoWaySubscribtion(column.visibility, cell.visibility);
-                
+
                 this.addTwoWaySubscribtion(column.index, cell.index);
 
-                this.addSubscription(column.index.changed.take(1),()=>{
-
-                    layouts.save(this.table());
-
-                    this.onNextEvent("table-layout-changed", true);
-                });
-                
                 row.elements.push(cell);
             }
 
             table.elements.push(row);
         }
+
+        table.columns.forEach(column=> {
+                         
+            this.addSubscription(column.index.changed.take(1),()=>{
+                Layouts.save(this.table());
+                this.onNextEvent("table-layout-changed", true);
+            })
+        });
+        
         this.table(table);
     }
     
-    
-    current = new Rx.CompositeDisposable();
 } 
 
