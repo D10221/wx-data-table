@@ -5,8 +5,6 @@ import {ViewModelBase} from "./viewModelBase";
 import {layouts } from "./Layouts";
 
 import LoDashStatic = _.LoDashStatic;
-import {setSilently} from "./table_component";
-
 
 var _ = require('lodash') as LoDashStatic;
 
@@ -32,8 +30,7 @@ export class TableCtrl extends ViewModelBase {
         
         var first = dataSource.items[0];
                  
-        var columns : Column[] = [] ; 
-
+        var columns : Column[] = [] ;
         for(var key in first){
 
             var column = new Column(key);
@@ -49,7 +46,6 @@ export class TableCtrl extends ViewModelBase {
             column.parent = table;
             columns.push(column);
         }
-        
         columns = _.sortBy(columns, c=> c.index());
         
         table.columns.addRange(columns);
@@ -94,45 +90,29 @@ export class TableCtrl extends ViewModelBase {
     saving = false;
         
     onColumnIndexChanged( x: KeyValue) :void {
-        
-        var params: { column: Column , prev: number } = x.value ;
-        
+
         this.saving = true;
-        
-        var column  = params.column ; 
-        var right =  column.index() > params.prev;
-        var left =  column.index() < params.prev ;
+
+        var params: { column: Column , prev: number } = x.value ;
+
+        var column  = params.column ;
+
         var prev = params.prev;
         
         var table = column.parent as Table;
 
         this.propagateColumnIndexChange(table, column, prev );
-        
-        var index = 0 ;
-
-        //reset indexes , so we dont care about index value while changing it 
-        var columns = _.chain(table.columns.toArray())
-            //.filter(x=>x.key !=  column.key)
-            .sortBy(x=>x.index())
-            .map(c=> {
-                c.index(index++);
-                return c;
-            })
-            .value();
-
-        table.columns = wx.list(columns);
 
         layouts.save(table);
 
         this.onNextEvent("table-layout-changed", true);
-        
     }
 
     propagateColumnIndexChange(table: Table, current: Column , prev:number) {
         
-        var found = _.find(table.columns.toArray(),c=> c.index() == current.index() && c.key != current.key);
+        var found = _.find(table.columns.toArray(),
+            c=> c.index() == current.index() && c.key != current.key);
         found.index(prev);
-        
         return;
     }
     
