@@ -2,7 +2,7 @@ module.exports = {
     entry: "mocha!./test/test.ts",
     output: {
         path: __dirname,
-        filename: "test/test.bundle.js"
+        filename: "built/test.bundle.js"
     },
     resolve: {
         extensions: ['', '.webpack.js', '.web.js', '.ts', '.tsx', '.js']

@@ -16,11 +16,14 @@ class App extends ViewModelBase {
     tableCtrl :ViewModelBase ;
     
     hook = vm=> {
+        
         this.tableCtrl = vm;
+        
         vm.when('postBindingInit').take(1).subscribe(()=>{
 
                 componentHandler.upgradeAllRegistered()
         });
+        
         vm.when('table-layout-changed').take(1).subscribe(()=>{
             var dataSource = this.dataSource();
             this.dataSource({
@@ -33,6 +36,9 @@ class App extends ViewModelBase {
 
     constructor(){
         super();
+        
+        
+        
         fetch('../data/materials.json')
             .then(r=>r.json())
             .then( data =>  this.dataSource({

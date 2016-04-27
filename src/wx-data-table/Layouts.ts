@@ -1,5 +1,6 @@
 import {Table} from "./tx-data-table";
 import {TableElementLayout} from "./interfaces";
+import {TableElement} from "./table_component";
 
 class Layouts {
 
@@ -10,19 +11,20 @@ class Layouts {
         }
     }
 
-    save(table:Table){
-        localStorage.setItem(`table_${table.key}`, table.getLayout());
+    save(table:TableElement){
+                 
+        localStorage.setItem(`table_${table.key}`, JSON.stringify(table.getLayout()));
     }
 
     getTable(key:string) : TableElementLayout  {
         return this.fromJson(localStorage.getItem(`table_${key}`));
     }
 
-    fromJson(json:string) : TableElementLayout{
+    fromJson(json:string) : TableElementLayout {
         
         var element = JSON.parse(json);
-        if(!element || !element.elements) return element ;
-        element.elements = element.elements.map(e=> this.fromJson(e));
+        // if(!element || !element.elements) return element ;
+        // element.elements = element.elements.map(e=> this.fromJson(e));
         return element
     }
 

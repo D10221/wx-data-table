@@ -1,6 +1,6 @@
 import {ViewModelBase} from "../../src/wx-data-table/viewModelBase";
 
-import {Visibility} from "../../src/wx-data-table/interfaces";
+import {Visibility, TableElementLayout} from "../../src/wx-data-table/interfaces";
 
 export class ComponentCommand {
 
@@ -31,7 +31,7 @@ export class TableElement extends ViewModelBase implements Rx.IDisposable {
 
     enabled = wx.property(true);
 
-    index = wx.property(0);
+    index : wx.IObservableProperty<number> = wx.property(0);
 
     constructor(public key:string) {
         super();
@@ -69,29 +69,45 @@ export class TableElement extends ViewModelBase implements Rx.IDisposable {
         }
     });
 
-    public getLayout():string {
-        return JSON.stringify({
+    
+
+    public getLayout():TableElementLayout {
+        return {
             key: this.key,
             index: this.index(),
             visibility: this.visibility(),
             enabled: this.enabled(),
             selected: this.isSelected(),
             elements : this.elements.map(x=> x.getLayout())
-        });
+        };
     }
 
-    public setLayout(json:string) {
-        var layout = JSON.parse(json);
+    public setLayout(layout: TableElementLayout) {
+        
+        if(!layout) {
+            return ;
+        }
+        
         this.key = layout.key;
         this.index(layout.index);
         this.visibility(layout.visibility);
         this.enabled(layout.enabled);
         this.isSelected(layout.selected);
         for(var element of this.elements.toArray()){
-            element.setLayout(layout.elements);
+            element.setLayout(_.find(layout.elements, l=>l.key == element.key));
         }
     }
 }
 
+export function setSilently<T extends TableElement,TR>(e:T , func:Func<T,wx.IObservableProperty<TR>>, value: TR) : void {
+    try {
+        (<any>func(e)).value = value;
+    } catch (e) {
+        console.log(`setSilently: error: ${e}`);
+    }
+};
 
+interface Func<T,TR>{
+    (t: T) :  TR;
+}
 
