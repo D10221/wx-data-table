@@ -44,7 +44,6 @@ export class TableCtrl extends ViewModelBase {
                 column.index( columns.length );
             }
 
-           // column.header = `${key} ${column.index()}`;
             column.parent = table;
             columns.push(column);
         }
@@ -80,6 +79,8 @@ export class TableCtrl extends ViewModelBase {
                 x=> this.onColumnIndexChanged(x));
             
             this.addSubscription(column.filterText.changed.select(x=> column), this.onColumnTextFilterChanged);
+            
+            this.addSubscription(column.sortDirection.changed.select(x=> column), this.onColumnSortDirectionChanged);
 
             this.addSubscription(column.visibility.changed.take(1),()=>{
                 layouts.save(this.table());
@@ -87,6 +88,20 @@ export class TableCtrl extends ViewModelBase {
         });
         
         this.table(table);
+    }
+
+    onColumnSortDirectionChanged(column: Column){
+        var table = column.table;
+                
+        var find = function (row:Row):any {
+            return row.findCellValueByKey(column.key);
+        };
+
+        var r = _.sortBy(table.elements.toArray(), find);
+        r = column.sortDirection() == "desc" ? _.reverse(r) : r ;
+        table.elements.clear();
+
+        table.elements.addRange(r);
     }
     
     onColumnTextFilterChanged(column:Column){

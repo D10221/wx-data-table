@@ -7,7 +7,32 @@ export class Column extends TableElement {
     }
 
     header : any ;
+    
+    /*Sort*/
+    sortDirection = wx.property("asc");
 
+    /***
+     * If no parameter then toggle sortDirection 
+     * @type {ICommand<any>}
+     */
+    setSortDirection = wx.command((parameter?) => {
+        
+        if(parameter == 'asc' || parameter == 'desc') {
+            this.sortDirection(parameter);
+            return;
+        }
+        
+        if (this.sortDirection() == 'asc') {
+            this.sortDirection('desc');
+            return;
+        }
+        if(this.sortDirection() == 'desc'){
+            this.sortDirection('asc');
+            return;
+        }
+    });
+
+    /*Filter*/
     filterText = wx.property("");
     
     isFilterVisible = wx.property(false);
@@ -19,6 +44,7 @@ export class Column extends TableElement {
         }
     });
     
+    /*Move*/
     //@Override
     moveCmd = wx.command((p)=> {
         if (p == "+") {
