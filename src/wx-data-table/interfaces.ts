@@ -29,3 +29,7 @@ export interface EventArgs {
     sender : any ; 
     args : KeyValue;
 }
+
+export interface Func<T,TR>{
+    (t: T) :  TR;
+}

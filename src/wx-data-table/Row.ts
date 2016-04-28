@@ -1,9 +1,10 @@
 
 
 import {TableElement} from "./table_component";
-import {Cell} from "./tx-data-table";
+
 import {Column} from "./Column";
 import {Visibility} from "./interfaces";
+import {Cell} from "./Cell";
 
 export class Row extends TableElement {
 

@@ -17,23 +17,3 @@ export class Table extends TableElement {
     columnsLength: number = 0 ;
 
 }
-
-
-export class Cell extends TableElement {
-    
-    value = wx.property();
-
-    constructor(key: string, value: any) {
-        super(key);
-        
-        this.undoCmd = wx.command(()=> this.value(value));
-
-        this.value(value);
-
-        this.addChangeSubscription(this.value, ()=> this.isDirty(this.value()!= value));
-    }
-
-    isDirty = wx.property(false);
-
-    undoCmd: wx.ICommand<any>;
-}

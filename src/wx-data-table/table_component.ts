@@ -1,6 +1,6 @@
 import {ViewModelBase} from "../../src/wx-data-table/viewModelBase";
 
-import {Visibility, TableElementLayout} from "../../src/wx-data-table/interfaces";
+import {Visibility, TableElementLayout, Func} from "../../src/wx-data-table/interfaces";
 
 export class ComponentCommand {
 
@@ -114,7 +114,12 @@ export function setSilently<T extends TableElement,TR>(e:T , func:Func<T,wx.IObs
     }
 };
 
-interface Func<T,TR>{
-    (t: T) :  TR;
+export class InputTypes  {
+
+    static values: string [] = ['date', 'number', 'text', 'checkbox'];
+
+    static any(inputType: string) : boolean  {
+        return inputType && _.find(InputTypes.values, x=> x == inputType) ? true : false;
+    }
 }
 

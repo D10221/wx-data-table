@@ -1,4 +1,3 @@
-
 <template id="data-table-template">
     <div class="mdl-card mdl-shadow--2dp" data-bind="with: @table" style="width: 100%">
         <div class="mdl-card__title">
@@ -6,35 +5,25 @@
         </div>
         <div style="width: 80%">
 
-            <table class="mdl-data-table" >
+            <table class="mdl-data-table">
                 <thead>
-                    <tr data-bind="foreach: columns">
-                        <th data-bind="component: { name: 'column-header', params: $data },visible: visibility | isVisible"></th>
-                    </tr>
+                <tr data-bind="foreach: columns">
+                    <th data-bind="component: { name: 'column-header', params: $data },visible: visibility | isVisible"></th>
+                </tr>
                 </thead>
                 <tbody data-bind="foreach: elements"> <!--Rows-->
-                <tr data-bind="foreach: elements, visible: visibility | isVisible " > <!--Cells-->
+                <tr data-bind="foreach: elements, visible: visibility | isVisible "> <!--Cells-->
                     <!--CELL-->
-                    <td data-bind="css: { 'cell-dirty' : @isDirty }, visible: visibility | isVisible" >
-                        <div style="display: flex">
-                            <!--Text Field-->
-                            <input data-bind="value: @value"/>
-                            <!--UNDO button-->
-                            <div data-bind="visible: @isDirty" >
-                                <button class="mdl-button mdl-button--icon"
-                                        data-bind="command: undoCmd">
-                                    <i class="material-icons">undo</i>
-                                </button>
-                            </div>
-                        </div>
+                    <td data-bind="css: { 'cell-dirty' : @isDirty }, visible: visibility | isVisible, component: { name: 'table-cell', params: $data}">
                     </td>
                 </tr>
                 </tbody>
-            </table><
+            </table>
+            <
         </div>
         <div class="mdl-card__actions mdl-card--border">
             <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">
-               < [1] ... [5] >
+                < [1] ... [5] >
             </a>
         </div>
         <div class="mdl-card__menu">
@@ -50,15 +39,17 @@
 
 <!--Column Template-->
 <template id="column-header">
-    <div style="display: flex;">
-        <div class="mdl-card__menu">
-            <div data-bind="component: { name: 'column-actions' , params: $data }"></div>
+    <div data-bind="if: header != false ">
+        <div style="display: flex;">
+            <span data-bind="text: header || key "></span>
+            <div>
+                <div data-bind="component: { name: 'column-actions' , params: $data }"></div>
+            </div>
         </div>
-        <span data-bind="text: header || key "></span>
-    </div>
-    <!--Search Box-->
-    <div data-bind="visible: @isFilterVisible">
-        <input type="text" data-bind="value: @filterText" class="mdl-textfield__input" />
+        <!--Search Box-->
+        <div data-bind="visible: @isFilterVisible">
+            <input type="text" data-bind="value: @filterText" class="mdl-textfield__input"/>
+        </div>
     </div>
 
 </template>
@@ -76,8 +67,8 @@
                 command: { command: toggleCmd, parameter: 'visibility' },
                 enabled:  enabled">
             <div style="display: flex; flex-direction: row; justify-content:space-between;align-items: center;">
-                <span  data-bind="text: key" ></span>
-                <i class="material-icons" data-bind="text: visibility | visibility_icon" ></i>
+                <span data-bind="text: key"></span>
+                <i class="material-icons" data-bind="text: visibility | visibility_icon"></i>
             </div>
         </li>
         <!--<li disabled class="mdl-menu__item">Disabled Action</li>-->
@@ -86,46 +77,46 @@
 </template>
 
 <!--Column Actions-->
-<template id="column-actions" >
+<template id="column-actions">
 
     <button data-bind="attr: { id: 'column_action_'+id }"
             class="mdl-button mdl-js-button mdl-button--icon">
-        <i class="material-icons">menu</i>
+        <i class="material-icons">keyboard_arrow_down</i>
     </button>
 
-    <ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
+    <ul class="mdl-menu mdl-menu--bottom mdl-js-menu mdl-js-ripple-effect"
         data-bind="attr: { for: 'column_action_'+id }">
         <li class="mdl-menu__item">
             <div style="display: flex; flex-direction: row; justify-content:space-between;align-items: center; margin: 5px">
-                <span >filter</span>
+                <span>filter</span>
                 <i class="material-icons" data-bind="command: toggleFilterVisible ">filter_list</i>
             </div>
         </li>
         <li class="mdl-menu__item">
             <div style="display: flex; flex-direction: row; justify-content:space-between;align-items: center; margin: 5px"
-            data-bind=" command: { command: toggleCmd, parameter: 'visibility' }">
-                <span >hide</span>
-                <i class="material-icons" data-bind="text: visibility | visibility_icon" ></i>
+                 data-bind=" command: { command: toggleCmd, parameter: 'visibility' }">
+                <span>hide</span>
+                <i class="material-icons" data-bind="text: visibility | visibility_icon"></i>
             </div>
         </li>
         <li class="mdl-menu__item">
             <div style="display: flex; flex-direction: row; justify-content:space-between;align-items: center; margin: 5px">
                 <i class="material-icons" data-bind=" command: { command: moveCmd, parameter: '-' }">chevron_left</i>
-                <span >move</span>
+                <span>move</span>
                 <i class="material-icons" data-bind=" command: { command: moveCmd, parameter: '+' }">chevron_right</i>
             </div>
         </li>
         <li class="mdl-menu__item">
             <div style="display: flex; flex-direction: row; justify-content:space-between;align-items: center; margin: 5px">
                 <i class="material-icons" data-bind="command: { command: setSortDirection, parameter: 'asc' }">keyboard_arrow_down</i>
-                <span > sort </span>
+                <span> sort </span>
                 <i class="material-icons" data-bind="command: { command: setSortDirection, parameter: 'desc'}">keyboard_arrow_up</i>
             </div>
         </li>
     </ul>
 </template>
 
-<template id="table-actions" >
+<template id="table-actions">
 
     <button data-bind="attr: { id: 'table_action_'+id }"
             class="mdl-button mdl-js-button mdl-button--icon">
@@ -160,14 +151,35 @@
     <!--context: Column, desc: 'default header template, plain text'-->
     <button class="mdl-button mdl-button--icon"
             data-bind="command: toggleValue">
-        <i class="material-icons" >swap_vert</i>
+        <i class="material-icons">swap_vert</i>
     </button>
 </template>
 
-<template id="checkbox-command">
+<template id="table-cell">
+    <div style="display: flex">
+        <div data-bind="if: !isInputTypeOf('checkbox')">
+            <span data-bind="command: setIsEditing, visible: isEditing|not ,  text: @value"  href="#"></span>
+        </div>
+        <!--CheckBox-->
+        <div data-bind="if: isInputTypeOf('checkbox')">
+            <div data-bind="component: { name:'checkbox-value', params: $data}"></div>
+        </div>
+        <input data-bind="value: @value, visible: @isEditing, attr: { type: getInputType() }"/>
+        <!--UNDO button-->
+        <div data-bind="visible: @isDirty">
+            <button class="mdl-button mdl-button--icon"
+                    data-bind="command: undoCmd">
+                <i class="material-icons">undo</i>
+            </button>
+        </div>
+    </div>
+</template>
+<template id="checkbox-value">
     <!--DataContext: { value: wx.IObservableProperty>boolean> } -->
     <button class="mdl-button mdl-button--icon"
             data-bind="command: command">
         <i class="material-icons" data-bind="text: value | toggleCheck "></i>
     </button>
 </template>
+
+

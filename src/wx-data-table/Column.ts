@@ -1,9 +1,7 @@
 import {TableElement} from "./table_component";
 import {Table} from "./tx-data-table";
 export class Column extends TableElement {
-
-    //defaultCellValue : any = null ;
-    
+     
     constructor(key:string) {
         super(key);
     }
@@ -86,5 +84,14 @@ export class Column extends TableElement {
     get table() : Table {
         return (this.parent as Table);
     }
+    
+    getter: (item: {}) => any = item=>{
+        
+        if(item.hasOwnProperty(this.key)){
+            return item[this.key];
+            
+        }
+        return null;
+    };
 
 }

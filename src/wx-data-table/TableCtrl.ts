@@ -1,12 +1,13 @@
 
 import {DataSource, EventArgs} from "./interfaces";
-import {Table,  Cell} from "./tx-data-table";
+import {Table} from "./tx-data-table";
 import {ViewModelBase} from "./viewModelBase";
 import {layouts } from "./Layouts";
 import {Column} from "./Column";
 
 import LoDashStatic = _.LoDashStatic;
 import {Row} from "./Row";
+import {Cell} from "./Cell";
 
 
 var _ = require('lodash') as LoDashStatic;
@@ -36,8 +37,11 @@ export class TableCtrl extends ViewModelBase {
             .sortBy(c=> c.index())
             .value();
         
-        //var column = new Column('isSelected');
-        //columns.push(column);
+        var column = new Column('isSelected');
+        column.index(0) ;
+        column.header = false;
+        column.getter = item => false;
+        columns.push(column);
         
         table.columns.addRange(columns);
         
@@ -121,17 +125,10 @@ export class TableCtrl extends ViewModelBase {
     
     // item[column.key]
 
-    getCellValue(column: Column, item: {}) : any {
-         
-        if(item.hasOwnProperty(column.key)){
-            return item[column.key];
-        }
-        return null;
-    }
     
     toCell(row: Row, column: Column, item: {} ) : Cell {
         
-        var cellValue = this.getCellValue(column,item);
+        var cellValue = column.getter(item);
                  
         var cell = new Cell(column.key, cellValue );
        
@@ -144,7 +141,13 @@ export class TableCtrl extends ViewModelBase {
         this.addTwoWaySubscribtion(column.visibility, cell.visibility);
 
         this.addTwoWaySubscribtion(column.index, cell.index);
-        
+
+        this.addSubscription(cell.isSelected.changed.select(x=> cell), this.onCellSelected);
+
+        this.addSubscription(cell.isEditing.changed.select(x=> cell), this.onCellisEditingChanged);
+
+        this.disposables.add(cell);
+
         return cell ;
     }
          
@@ -155,7 +158,7 @@ export class TableCtrl extends ViewModelBase {
         var cells = table.columns.map(column=> this.toCell(row, column , item ));
 
         row.elements.addRange(cells);
-        
+        row.parent = table;
         return row;
     }
 
@@ -176,13 +179,28 @@ export class TableCtrl extends ViewModelBase {
     }
     
     getKeys(dataSource:DataSource): string[] {
+
         var first = dataSource && dataSource.items ? dataSource.items[0] : {} ;
         // columns.push( new Column('isSelected'));
         var keys= [];
         for(var key in first){
             keys.push(key)
         }
+
         return keys;
+    }
+
+    onCellSelected(cell:Cell){
+        var row = (cell.parent as Row);
+        row.isSelected(_.some(row.elements.toArray() as Cell[], x=> x.isSelected()));
+    }
+
+    onCellisEditingChanged(cell: Cell){
+        var row = (cell.parent as Row);
+        ((row.parent as Table).elements.toArray() as Row[])
+            .forEach(row=> 
+                _.filter((row.elements.toArray() as Cell[]), c=>c.id!= cell.id).forEach(c=>c.isEditing(false))
+            )
     }
     
 } 

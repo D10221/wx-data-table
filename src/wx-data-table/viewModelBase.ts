@@ -94,4 +94,5 @@ export class ViewModelBase {
         this.view = view;
         this.onNextEvent("postBindingInit", view);
     };
+    
 }

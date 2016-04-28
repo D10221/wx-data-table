@@ -3,6 +3,7 @@
 import {DataSource, Visibility} from "./wx-data-table/interfaces";
 import {TableCtrl} from "./wx-data-table/TableCtrl";
 import {ViewModelBase} from "./wx-data-table/viewModelBase";
+import {CheckBoxViewModel, ChekBoxContext} from "./wx-data-table/CheckBox";
 
 
 declare var componentHandler : any ;
@@ -79,18 +80,13 @@ wx.app.component('column-header', {
     template: templates.getElementById('column-header').innerHTML
 });
 
-class CheckboxCommand {
-    command: wx.ICommand<boolean>; 
-    value: wx.IObservableProperty<boolean>;
-    constructor(params) {
-        this.command = params.command ;
-        this.value = params.value;
-    }
-}
+wx.app.component('table-cell', {
+   template: templates.getElementById('table-cell').innerHTML
+});
 
-wx.app.component('checkbox-command', {
-    template: templates.getElementById('checkbox-command').innerHTML,
-    viewModel: params => new CheckboxCommand(params)
+wx.app.component('checkbox-value', {
+    template: templates.getElementById('checkbox-value').innerHTML,
+    viewModel: (params:ChekBoxContext) => new CheckBoxViewModel(params)
 });
 
 wx.app.filter('visibility_icon', (value:Visibility)=>  { return value == Visibility.visible ? 'visibility' : 'visibility_off' } );
@@ -98,6 +94,7 @@ wx.app.filter("isVisible", (value: Visibility) =>  value == Visibility.visible);
 wx.app.filter("isHidden", (value: Visibility) =>  value == Visibility.hidden);
 wx.app.filter('toggleCheck', (input:boolean) => input == true ? 'check' : 'crop_square' ) ;
 wx.app.filter("invert", value=> !value);
+wx.app.filter("not", value=> !value);
 
 wx.applyBindings( new App()  , document.getElementById("main-view"));
 
