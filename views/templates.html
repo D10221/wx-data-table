@@ -30,7 +30,7 @@
                     </td>
                 </tr>
                 </tbody>
-            </table>
+            </table><
         </div>
         <div class="mdl-card__actions mdl-card--border">
             <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">
@@ -39,7 +39,7 @@
         </div>
         <div class="mdl-card__menu">
             <div style="display: flex">
-                <div data-bind="component: { name: 'table-columns' , params: $data }"></div>
+                <div data-bind="component: { name: 'table-columns-visibility' , params: $data }"></div>
                 <div data-bind="component: { name: 'table-actions' , params: $data }"></div>
             </div>
         </div>
@@ -57,7 +57,7 @@
 
 </template>
 
-<template id="table-columns">
+<template id="table-columns-visibility">
     <button data-bind="attr: { id: 'table-columns_menu_'+id }"
             class="mdl-button mdl-js-button mdl-button--icon">
         <i class="material-icons">visibility</i>
@@ -78,7 +78,7 @@
     </ul>
 </template>
 
-<template id="column-actions-template" >
+<template id="column-actions" >
 
     <button data-bind="attr: { id: 'column_action_'+id }"
             class="mdl-button mdl-js-button mdl-button--icon">
@@ -87,6 +87,12 @@
 
     <ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
         data-bind="attr: { for: 'column_action_'+id }">
+        <li class="mdl-menu__item">
+            <div style="display: flex; flex-direction: row; justify-content:space-between;align-items: center; margin: 5px">
+                <span >filter</span>
+                <i class="material-icons" >filter_list</i>
+            </div>
+        </li>
         <li class="mdl-menu__item">
             <div style="display: flex; flex-direction: row; justify-content:space-between;align-items: center; margin: 5px"
             data-bind=" command: { command: toggleCmd, parameter: 'visibility' }">
@@ -101,6 +107,38 @@
                 <i class="material-icons" data-bind=" command: { command: moveCmd, parameter: '+' }">chevron_right</i>
             </div>
         </li>
+        <li class="mdl-menu__item">
+            <div style="display: flex; flex-direction: row; justify-content:space-between;align-items: center; margin: 5px">
+                <i class="material-icons" >keyboard_arrow_down</i>
+                <span > sort </span>
+                <i class="material-icons" >keyboard_arrow_up</i>
+            </div>
+        </li>
+    </ul>
+</template>
+
+<template id="table-actions" >
+
+    <button data-bind="attr: { id: 'table_action_'+id }"
+            class="mdl-button mdl-js-button mdl-button--icon">
+        <i class="material-icons">menu</i>
+    </button>
+
+    <ul class="mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect"
+        data-bind="attr: { for: 'table_action_'+id }">
+        <li class="mdl-menu__item">
+            Add
+        </li>
+        <li class="mdl-menu__item">
+            Remove
+        </li>
+        <li class="mdl-menu__item">
+            Check|Uncheck
+        </li>
+        <li class="mdl-menu__item">
+            Search
+        </li>
+
     </ul>
 </template>
 
@@ -118,7 +156,7 @@
     </button>
 </template>
 
-<template id="wx-checkbox-template">
+<template id="checkbox-command">
     <!--DataContext: { value: wx.IObservableProperty>boolean> } -->
     <button class="mdl-button mdl-button--icon"
             data-bind="command: command">

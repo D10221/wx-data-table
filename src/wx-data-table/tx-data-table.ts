@@ -36,7 +36,7 @@ export class Column extends TableElement {
             var prev = this.index();
             
             this.index(next);
-            
+
             this.onNextEvent('column-index-changed', prev) ;
         }
         
@@ -54,7 +54,7 @@ export class Column extends TableElement {
 
             //TableCtrl is listening to this change to apply changes
 
-            this.onNextEvent('column-index-changed', { column: this, prev: prev }) ;
+            this.onNextEvent('column-index-changed', prev) ;
         }
     });
 

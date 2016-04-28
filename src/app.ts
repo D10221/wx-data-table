@@ -62,22 +62,35 @@ wx.app.component("data-table", {
 
 
 wx.app.component("column-actions", {
-    template: templates.getElementById("column-actions-template").innerHTML,
+    template: templates.getElementById("column-actions").innerHTML,
     viewModel: (params)=> params 
 });
 
 wx.app.component("table-actions", {
-    template: templates.getElementById("column-actions-template").innerHTML,
+    template: templates.getElementById("table-actions").innerHTML,
     viewModel: (params)=> params
 });
 
-wx.app.component('table-columns', {
-    template: templates.getElementById('table-columns').innerHTML
+wx.app.component('table-columns-visibility', {
+    template: templates.getElementById('table-columns-visibility').innerHTML
 });
-
 
 wx.app.component('column-header', {
     template: templates.getElementById('column-header').innerHTML
+});
+
+class CheckboxCommand {
+    command: wx.ICommand<boolean>; 
+    value: wx.IObservableProperty<boolean>;
+    constructor(params) {
+        this.command = params.command ;
+        this.value = params.value;
+    }
+}
+
+wx.app.component('checkbox-command', {
+    template: templates.getElementById('checkbox-command').innerHTML,
+    viewModel: params => new CheckboxCommand(params)
 });
 
 wx.app.filter('visibility_icon', (value:Visibility)=>  { return value == Visibility.visible ? 'visibility' : 'visibility_off' } );

@@ -12,8 +12,8 @@ class Layouts {
     }
 
     save(table:TableElement){
-                 
-        localStorage.setItem(`table_${table.key}`, JSON.stringify(table.getLayout()));
+        var layout = table.getLayout();
+        localStorage.setItem(`table_${table.key}`, JSON.stringify(layout));
     }
 
     getTable(key:string) : TableElementLayout  {
