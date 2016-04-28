@@ -1,11 +1,12 @@
 
 import {DataSource, EventArgs} from "./interfaces";
-import {Table,  Row, Cell} from "./tx-data-table";
+import {Table,  Cell} from "./tx-data-table";
 import {ViewModelBase} from "./viewModelBase";
 import {layouts } from "./Layouts";
 import {Column} from "./Column";
 
 import LoDashStatic = _.LoDashStatic;
+import {Row} from "./Row";
 
 
 var _ = require('lodash') as LoDashStatic;

@@ -9,8 +9,15 @@ export class Column extends TableElement {
     header : any ;
 
     filterText = wx.property("");
+    
     isFilterVisible = wx.property(false);
     
+    toggleFilterVisible = wx.command(()=>{
+        this.isFilterVisible(!(this.isFilterVisible()));
+        if(!this.isFilterVisible()){
+            this.filterText("");
+        }
+    });
     
     //@Override
     moveCmd = wx.command((p)=> {
