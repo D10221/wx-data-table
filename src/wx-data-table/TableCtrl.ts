@@ -1,10 +1,12 @@
 
-import {DataSource, KeyValue, EventArgs} from "./interfaces";
-import {Table, Column, Row, Cell} from "./tx-data-table";
+import {DataSource, EventArgs} from "./interfaces";
+import {Table,  Row, Cell} from "./tx-data-table";
 import {ViewModelBase} from "./viewModelBase";
 import {layouts } from "./Layouts";
+import {Column} from "./Column";
 
 import LoDashStatic = _.LoDashStatic;
+
 
 var _ = require('lodash') as LoDashStatic;
 
@@ -75,6 +77,8 @@ export class TableCtrl extends ViewModelBase {
                     .where(x=> !this.saving)
                     .take(1),
                 x=> this.onColumnIndexChanged(x));
+            
+            this.addSubscription(column.filterText.changed.select(x=> column), this.onColumnTextFilterChanged);
 
             this.addSubscription(column.visibility.changed.take(1),()=>{
                 layouts.save(this.table());
@@ -83,6 +87,14 @@ export class TableCtrl extends ViewModelBase {
         
         this.table(table);
     }
+    
+    onColumnTextFilterChanged(column:Column){
+        var table = column.table;
+        for (var row of table.elements.toArray() as Row[]) {
+            row.setVisble(column);
+        }
+    }
+    
     
     saving = false;
         

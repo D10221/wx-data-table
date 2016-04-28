@@ -2,6 +2,9 @@
 
 import {TableElement,} from "./table_component";
 
+import {Column} from "./Column";
+import {Visibility} from "./interfaces";
+
 export class Table extends TableElement {
 
     header:any;
@@ -14,55 +17,6 @@ export class Table extends TableElement {
 
 }
 
-export class Column extends TableElement {
-    
-    header : any ;
-    
-    constructor(key:string) {
-        super(key);
-    }
-
-    //@Override
-    moveCmd = wx.command((p)=> {
-        if (p == "+") {
-            
-            var next :number = this.index() + 1;
-            
-            //Last position Reserved 
-            if( next >= this.table.columns.length()  ) {
-                return ;
-            }
-             
-            var prev = this.index();
-            
-            this.index(next);
-
-            this.onNextEvent('column-index-changed', prev) ;
-        }
-        
-        if (p == '-') {
-
-            var next = this.index() - 1;
-            
-            //Zero position reserved 
-            if(next < 1 ) return ;
-            
-            var prev = this.index();
-
-            //Cells are listening to this change
-            this.index(next);
-
-            //TableCtrl is listening to this change to apply changes
-
-            this.onNextEvent('column-index-changed', prev) ;
-        }
-    });
-
-    get table() : Table {
-        return (this.parent as Table);
-     }
-
-}
 
 export class Row extends TableElement {
     
@@ -70,7 +24,25 @@ export class Row extends TableElement {
         super(key);
     }
 
-   // cells:Cell[] = [];
+    findCellByKey:(key:string)=> Cell = (key) => {
+        return _.find(this.elements.toArray(), cell => cell.key == key) as Cell;
+    };
+
+    findCellValueByKey:(key:string)=> any = (key) => {
+        var cell = _.find(this.elements.toArray(), cell => cell.key == key) as Cell;
+        return cell ? cell.value() : null;
+    };
+
+    /***
+     * 
+     * @param column
+     */
+    setVisble(column:Column) {
+        var txt = this.findCellValueByKey(column.key)
+            .toString();
+        var visible = new RegExp(column.filterText()).test(txt);
+        this.visibility(visible? Visibility.visible : Visibility.hidden );
+    }
 }
 
 export class Cell extends TableElement {

@@ -13,7 +13,7 @@
                     </tr>
                 </thead>
                 <tbody data-bind="foreach: elements"> <!--Rows-->
-                <tr data-bind="foreach: elements" > <!--Cells-->
+                <tr data-bind="foreach: elements, visible: visibility | isVisible " > <!--Cells-->
                     <!--CELL-->
                     <td data-bind="css: { 'cell-dirty' : @isDirty }, visible: visibility | isVisible" >
                         <div style="display: flex">
@@ -54,6 +54,10 @@
         </div>
         <span data-bind="text: header || key "></span>
     </div>
+    <!--Search Box-->
+    <div data-bind="visible: @isFilterVisible">
+        <input type="text" data-bind="value: @filterText" class="mdl-textfield__input" />
+    </div>
 
 </template>
 
@@ -90,7 +94,7 @@
         <li class="mdl-menu__item">
             <div style="display: flex; flex-direction: row; justify-content:space-between;align-items: center; margin: 5px">
                 <span >filter</span>
-                <i class="material-icons" >filter_list</i>
+                <i class="material-icons" data-bind="command: { command: toggleCmd, parameter: 'isFilterVisible' }">filter_list</i>
             </div>
         </li>
         <li class="mdl-menu__item">

@@ -57,9 +57,16 @@ export class TableElement extends ViewModelBase implements Rx.IDisposable {
     toggleCmd:wx.ICommand<any> = wx.command((parameter)=> {
         if (parameter == 'visibility') {
             this.visibility(this.visibility() == Visibility.visible ? Visibility.hidden : Visibility.visible)
+            return;
         }
         if (parameter == "isSelected") {
             this.isSelected(!this.isSelected())
+            return;
+        }
+        var prop = this[parameter] as wx.IObservableProperty<boolean>;
+        if(prop) {
+            prop(!prop());
+            return;
         }
         if (parameter.key) {
             var cmd = _.find(this.commands.toArray(), x => x.key == parameter.key);
