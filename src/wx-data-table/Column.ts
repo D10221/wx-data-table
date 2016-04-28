@@ -2,6 +2,8 @@ import {TableElement} from "./table_component";
 import {Table} from "./tx-data-table";
 export class Column extends TableElement {
 
+    //defaultCellValue : any = null ;
+    
     constructor(key:string) {
         super(key);
     }

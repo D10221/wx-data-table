@@ -30,46 +30,21 @@ export class TableCtrl extends ViewModelBase {
 
         table.header = dataSource.key;
         
-        var first = dataSource.items[0];
-                 
-        var columns : Column[] = [] ;
-        for(var key in first){
-
-            var column = new Column(key);
-            
-            var layout = layouts.getColumn(dataSource.key, column.key);
-            if (layout) {
-                column.setLayout(layout);
-            } else{
-                column.index( columns.length );
-            }
-
-            column.parent = table;
-            columns.push(column);
-        }
-        columns = _.sortBy(columns, c=> c.index());
+        var columns : Column[] = _
+            .chain(this.getKeys(dataSource))
+            .map(key=> this.ToColumn(table, key))
+            .sortBy(c=> c.index())
+            .value();
+        
+        //var column = new Column('isSelected');
+        //columns.push(column);
         
         table.columns.addRange(columns);
-
-        for(var item of dataSource.items){
-
-            var row = new Row(`${dataSource.key}_row_${table.elements.length()}`);
-
-            for(var column of columns){
-
-                var cell = new Cell(column.key, item[column.key]);
-                cell.index(column.index());
-                cell.parent = row;
-                cell.visibility(column.visibility());
-                
-                this.addTwoWaySubscribtion(column.visibility, cell.visibility);
-                this.addTwoWaySubscribtion(column.index, cell.index);
-                row.elements.push(cell);
-            }
-
-            table.elements.push(row);
-        }
-
+        
+        var rows = dataSource.items.map(item=> this.toRow(table, item ));
+                 
+        table.elements.addRange(rows);
+        
         table.columns.forEach(column=> {
                          
             this.addSubscription(
@@ -83,6 +58,11 @@ export class TableCtrl extends ViewModelBase {
             this.addSubscription(column.sortDirection.changed.select(x=> column), this.onColumnSortDirectionChanged);
 
             this.addSubscription(column.visibility.changed.take(1),()=>{
+
+                /*if(column.visibility()!= Visibility.visible){
+                    column.filterText("")
+                }*/
+
                 layouts.save(this.table());
             })
         });
@@ -137,6 +117,72 @@ export class TableCtrl extends ViewModelBase {
             c=> c.index() == current.index() && c.key != current.key);
         found.index(prev);
         return;
+    }
+    
+    // item[column.key]
+
+    getCellValue(column: Column, item: {}) : any {
+         
+        if(item.hasOwnProperty(column.key)){
+            return item[column.key];
+        }
+        return null;
+    }
+    
+    toCell(row: Row, column: Column, item: {} ) : Cell {
+        
+        var cellValue = this.getCellValue(column,item);
+                 
+        var cell = new Cell(column.key, cellValue );
+       
+        cell.index(column.index());
+        
+        cell.parent = row;
+        
+        cell.visibility(column.visibility());
+
+        this.addTwoWaySubscribtion(column.visibility, cell.visibility);
+
+        this.addTwoWaySubscribtion(column.index, cell.index);
+        
+        return cell ;
+    }
+         
+    toRow( table:Table , item:{} ) : Row {
+        
+        var row = new Row(`${table.key}_row_${table.elements.length()}`);
+         
+        var cells = table.columns.map(column=> this.toCell(row, column , item ));
+
+        row.elements.addRange(cells);
+        
+        return row;
+    }
+
+    ToColumn(table:Table, key: string) : Column {
+        
+        var column = new Column(key);
+
+        var layout = layouts.getColumn(table.key, column.key);
+        if (layout) {
+            column.setLayout(layout);
+        } else{
+            column.index( table.columnsLength++ );
+        }
+
+        column.parent = table;
+        
+        return column;
+    }
+    
+    getKeys(dataSource:DataSource): string[] {
+        var first = dataSource && dataSource.items ? dataSource.items[0] : {} ;
+        // columns.push( new Column('isSelected'));
+        var keys= [];
+        for(var key in first){
+            keys.push(key)
+        }
+        return keys;
     }
     
 } 
