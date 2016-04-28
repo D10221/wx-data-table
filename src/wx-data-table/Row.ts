@@ -1,6 +1,6 @@
 
 
-import {TableElement} from "./table_component";
+import {TableElement} from "./TableElement";
 
 import {Column} from "./Column";
 import {Visibility} from "./interfaces";

@@ -1,6 +1,6 @@
-import {Table} from "./tx-data-table";
+import {Table} from "./Table";
 import {TableElementLayout} from "./interfaces";
-import {TableElement} from "./table_component";
+import {TableElement} from "./TableElement";
 
 class Layouts {
 

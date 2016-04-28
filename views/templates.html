@@ -51,6 +51,9 @@
             <input type="text" data-bind="value: @filterText" class="mdl-textfield__input"/>
         </div>
     </div>
+    <div data-bind="if: key == 'isSelected' ">
+        <i class="material-icons"> swap_vert</i>
+    </div>
 
 </template>
 

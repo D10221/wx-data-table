@@ -1,5 +1,5 @@
-import {TableElement} from "./table_component";
-import {Table} from "./tx-data-table";
+import {TableElement} from "./TableElement";
+import {Table} from "./Table";
 export class Column extends TableElement {
      
     constructor(key:string) {
@@ -93,5 +93,16 @@ export class Column extends TableElement {
         }
         return null;
     };
+
+    disabledFeatures: string[] = [];
+
+    isDisabledFeature( featureKey:string) : boolean {
+        return  _.some(this.disabledFeatures, feature => feature && (feature as string).toLowerCase() == featureKey.toLowerCase());
+    }
+    
+    isEnabled(featureKey: string){
+        return !this.isDisabledFeature(featureKey);
+    }
+    
 
 }

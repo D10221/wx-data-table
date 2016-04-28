@@ -1,24 +1,40 @@
-import {TableElement, InputTypes} from "./table_component";
+import {TableElement, InputTypes} from "./TableElement";
+import {Column} from "./Column";
+import {Row} from "./Row";
+import {Table} from "./Table";
 
 export class Cell extends TableElement {
 
     value = wx.property();
-    
 
-    constructor(key: string, value: any) {
+    constructor(key: string, private _value: any) {
         super(key);
 
-        this.undoCmd = wx.command(()=> this.value(value));
+        this.undoCmd = wx.command(()=> this.value(_value));
 
-        this.value(value);
+        this.value(_value);
 
-        this.addChangeSubscription(this.value, ()=> this.isDirty(this.value()!= value));
+        this.addSubscription(this.value.changed.where(x=> this.column.isEnabled("isDirty")), this.dirtyCheck);
         
-        this.addSubscription(this.isEditing.changed, this.onEditing);
+        this.addSubscription(this.isEditing.changed.where(x=> this.column.isEnabled("isEditing")), this.onEditing);
+        
+    }
 
+    private _column ;
+    
+    private get column(): Column {
+        return this._column || (
+                this._column = _.find(((this.parent as Row).parent as Table).columns.toArray(),
+                    c=>c.key == this.key)
+            );
     }
 
     isDirty = wx.property(false);
+
+    dirtyCheck: ()=> void = () => {
+        this.isDirty(this.value()!= this._value);
+    };
+
 
     undoCmd: wx.ICommand<any>;
 
@@ -59,4 +75,5 @@ export class Cell extends TableElement {
     isInputTypeOf(type:string):boolean {
         return this.getInputType() == type;
     }
+
 }

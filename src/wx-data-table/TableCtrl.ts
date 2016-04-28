@@ -1,6 +1,6 @@
 
 import {DataSource, EventArgs} from "./interfaces";
-import {Table} from "./tx-data-table";
+import {Table} from "./Table";
 import {ViewModelBase} from "./viewModelBase";
 import {layouts } from "./Layouts";
 import {Column} from "./Column";
@@ -36,12 +36,14 @@ export class TableCtrl extends ViewModelBase {
             .map(key=> this.ToColumn(table, key))
             .sortBy(c=> c.index())
             .value();
-        
+
         var column = new Column('isSelected');
         column.index(0) ;
         column.header = false;
         column.getter = item => false;
+        column.disabledFeatures = ["isDirty"];
         columns.push(column);
+
         
         table.columns.addRange(columns);
         
