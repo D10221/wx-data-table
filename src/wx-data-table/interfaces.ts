@@ -23,3 +23,9 @@ export interface TableElementLayout {
     selected: boolean,
     elements : TableElementLayout[]
 }
+
+
+export interface EventArgs {
+    sender : any ; 
+    args : KeyValue;
+}

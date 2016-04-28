@@ -1,5 +1,5 @@
 
-import {DataSource, KeyValue} from "./interfaces";
+import {DataSource, KeyValue, EventArgs} from "./interfaces";
 import {Table, Column, Row, Cell} from "./tx-data-table";
 import {ViewModelBase} from "./viewModelBase";
 import {layouts } from "./Layouts";
@@ -89,15 +89,13 @@ export class TableCtrl extends ViewModelBase {
     
     saving = false;
         
-    onColumnIndexChanged( x: KeyValue) :void {
+    onColumnIndexChanged( event: EventArgs) :void {
 
         this.saving = true;
 
-        var params: { column: Column , prev: number } = x.value ;
+        var column  = event.sender as Column ;
 
-        var column  = params.column ;
-
-        var prev = params.prev;
+        var prev = event.args.value;
         
         var table = column.parent as Table;
 

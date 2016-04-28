@@ -1,6 +1,6 @@
 ///<reference path="../reference.d.ts"/>
 
-import {TableElement, setSilently} from "./table_component";
+import {TableElement,} from "./table_component";
 
 export class Table extends TableElement {
 
@@ -37,7 +37,7 @@ export class Column extends TableElement {
             
             this.index(next);
             
-            this.onNextEvent('column-index-changed', { column: this, prev: prev }) ;
+            this.onNextEvent('column-index-changed', prev) ;
         }
         
         if (p == '-') {

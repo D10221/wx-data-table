@@ -1,11 +1,11 @@
 
 import {Guid} from "./guid";
-import {KeyValue} from "./interfaces";
+import {KeyValue, EventArgs} from "./interfaces";
 export class ViewModelBase {
 
     constructor(){
         this.onNextEvent = (key, value) =>  {
-            this.events({key: key, value:value});
+            this.events( {sender: this, args: {key: key, value:value}});
         };
     }
     id = Guid.newGuid();
@@ -15,13 +15,13 @@ export class ViewModelBase {
      * @param params
      * @returns {any}
      */
-    when(key:string):Rx.Observable<KeyValue> ;
-    when(key:string, action?:(kv:KeyValue)=> void):Rx.IDisposable ;
-    when(key:string, action?:(kv:KeyValue)=> void):any {
+    when(key:string):Rx.Observable<EventArgs> ;
+    when(key:string, action?:(kv:EventArgs)=> void):Rx.IDisposable ;
+    when(key:string, action?:(kv:EventArgs)=> void):any {
         if (!action) {
-            return this.events.changed.where(e=> e.key == key);
+            return this.events.changed.where(e=> e.args.key == key);
         }
-        return this.events.changed.where(e=> e.key == key).subscribe(action);
+        return this.events.changed.where(e=> e.args.key == key).subscribe(action);
 
     }
 
@@ -74,7 +74,7 @@ export class ViewModelBase {
 
     disposables = new Rx.CompositeDisposable();
 
-    events = wx.property<KeyValue>();
+    events = wx.property<EventArgs>();
 
     onNextEvent(key: string, value: any) {};
 
