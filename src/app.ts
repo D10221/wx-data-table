@@ -75,6 +75,11 @@ wx.app.component('table-columns', {
     template: templates.getElementById('table-columns').innerHTML
 });
 
+
+wx.app.component('column-header', {
+    template: templates.getElementById('column-header').innerHTML
+});
+
 wx.app.filter('visibility_icon', (value:Visibility)=>  { return value == Visibility.visible ? 'visibility' : 'visibility_off' } );
 wx.app.filter("isVisible", (value: Visibility) =>  value == Visibility.visible);
 wx.app.filter("isHidden", (value: Visibility) =>  value == Visibility.hidden);

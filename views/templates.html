@@ -9,14 +9,7 @@
             <table class="mdl-data-table" >
                 <thead>
                     <tr data-bind="foreach: columns">
-                        <th data-bind="visible: visibility | isVisible"> <!-- th: <Column>Context -->
-                            <div style="display: flex;">
-                                <div class="mdl-card__menu">
-                                    <div data-bind="component: { name: 'column-actions' , params: $data }"></div>
-                                </div>
-                                <span data-bind="text: header"></span>
-                            </div>
-                        </th>
+                        <th data-bind="component: { name: 'column-header', params: $data },visible: visibility | isVisible"></th>
                     </tr>
                 </thead>
                 <tbody data-bind="foreach: elements"> <!--Rows-->
@@ -50,6 +43,16 @@
                 <div data-bind="component: { name: 'table-actions' , params: $data }"></div>
             </div>
         </div>
+    </div>
+
+</template>
+
+<template id="column-header">
+    <div style="display: flex;">
+        <div class="mdl-card__menu">
+            <div data-bind="component: { name: 'column-actions' , params: $data }"></div>
+        </div>
+        <span data-bind="text: header || key "></span>
     </div>
 
 </template>

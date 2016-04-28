@@ -8,7 +8,6 @@ import LoDashStatic = _.LoDashStatic;
 
 var _ = require('lodash') as LoDashStatic;
 
-
 export class TableCtrl extends ViewModelBase {
 
     table = wx.property<Table>(new Table('')) ;
@@ -41,8 +40,8 @@ export class TableCtrl extends ViewModelBase {
             } else{
                 column.index( columns.length );
             }
-            
-            column.header = `${key} ${column.index()}`;
+
+           // column.header = `${key} ${column.index()}`;
             column.parent = table;
             columns.push(column);
         }
@@ -76,9 +75,7 @@ export class TableCtrl extends ViewModelBase {
                     .where(x=> !this.saving)
                     .take(1),
                 x=> this.onColumnIndexChanged(x));
-            
-            // this.addSubscription(column.index.changed.distinct().where(x=> !this.saving).select(x=> column).take(1),this.onColumnIndexChanged);
-            
+
             this.addSubscription(column.visibility.changed.take(1),()=>{
                 layouts.save(this.table());
             })
