@@ -58,6 +58,27 @@ export class ViewModelBase {
 
     }
 
+    /***
+     * Many 
+     */
+    addSubscriptions(composite?:Rx.CompositeDisposable,...disposables: Rx.Disposable[] ){
+        disposables.forEach(disposable=> 
+            (composite|| this.disposables).add(disposable)
+        );
+    }
+    
+    reneSubscriptions(composite:Rx.CompositeDisposable,disposables: Rx.Disposable[] ) : Rx.CompositeDisposable {
+        
+        if(composite){
+            composite.dispose();
+        }
+        composite = new Rx.CompositeDisposable();
+        disposables.forEach(disposable=>
+            composite.add(disposable)
+        );
+        return composite;
+    }
+
     twoWaySubscription<T>(left:wx.IObservableProperty<T>, right:wx.IObservableProperty<T>):Rx.IDisposable {
 
         var disposables = new Rx.CompositeDisposable();

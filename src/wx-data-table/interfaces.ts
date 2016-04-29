@@ -1,8 +1,25 @@
 import {ViewModelBase} from "./viewModelBase";
+
 export interface DataSource {
     key:string;
     items: any[] ;
     hook?(viewModel: ViewModelBase);
+    pages?: PageData
+}
+export interface PageData {
+    count: number ;
+    current: number ;
+}
+export enum PageRequestType {
+    next,
+    prev,
+    page
+}
+
+export interface PageRequest {
+     current: number ;
+     next: number;
+     type: PageRequestType
 }
 
 export enum Visibility {

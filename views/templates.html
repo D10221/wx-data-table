@@ -1,5 +1,5 @@
 <template id="data-table-template">
-    <div class="mdl-card mdl-shadow--2dp" data-bind="with: @table" style="width: 100%">
+    <div class="mdl-cell mdl-cell--4-col  mdl-card mdl-shadow--2dp" data-bind="with: @table" style="width: 100%">
         <div class="mdl-card__title">
             <h2 class="mdl-card__title-text" data-bind="text: header"></h2>
         </div>
@@ -11,20 +11,21 @@
                     <th data-bind="component: { name: 'column-header', params: $data },visible: visibility | isVisible"></th>
                 </tr>
                 </thead>
-                <tbody data-bind="foreach: elements"> <!--Rows-->
-                <tr data-bind="foreach: elements, visible: visibility | isVisible "> <!--Cells-->
-                    <!--CELL-->
-                    <td data-bind="css: { 'cell-dirty' : @isDirty }, visible: visibility | isVisible, component: { name: 'table-cell', params: $data}">
-                    </td>
-                </tr>
+                <tbody data-bind="foreach: elements">
+                    <!--Row-->
+                    <tr data-bind="foreach: elements, visible: visibility | isVisible ">
+                        <!--CELL-->
+                        <td data-bind="css: { 'cell-dirty' : @isDirty }, visible: visibility | isVisible, component: { name: 'table-cell', params: $data}">
+                        </td>
+                    </tr>
                 </tbody>
             </table>
-            <
         </div>
         <div class="mdl-card__actions mdl-card--border">
-            <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">
-                < [1] ... [5] >
-            </a>
+          <div data-bind="with: $parent.pages">
+              <!--Context: Pages-->
+              <div data-bind="component: { name: 'pages', params: $data}"></div>
+          </div>
         </div>
         <div class="mdl-card__menu">
             <div style="display: flex">
@@ -36,6 +37,31 @@
 
 </template>
 
+<!--Row Pager-->
+<template id="pages">
+    <!--Context: Pages-->
+    <div style="display: flex; flex-flow: row">
+        <!--$parent is Controller-->
+        <button class="mdl-button mdl-js-button mdl-js-ripple-effect"
+                data-bind="command: prevPage">
+            <!--NEXT-->
+            <i class="material-icons">chevron_left</i>
+        </button>
+        <div style="display: flex" data-bind="foreach: pages">
+            <button class="mdl-button mdl-js-button mdl-js-ripple-effect"
+                    style="font-size: 12px"
+                    data-bind="command: { command: $parent.gotoPage, parameter: $data }, css: { 'mdl-button--accent': $data == $parent.current }">
+                <!--GOTO-->
+                <span data-bind="text: $data+1"></span>
+            </button>
+        </div>
+        <button class="mdl-button mdl-js-button mdl-js-ripple-effect"
+                data-bind="command: nextPage">
+            <!--PREV-->
+            <i class="material-icons">chevron_right</i>
+        </button>
+    </div>
+</template>
 
 <!--Column Template-->
 <template id="column-header">

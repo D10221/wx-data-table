@@ -8,6 +8,7 @@ import {Column} from "./Column";
 import LoDashStatic = _.LoDashStatic;
 import {Row} from "./Row";
 import {Cell} from "./Cell";
+import {Pages} from "./Pages";
 
 
 var _ = require('lodash') as LoDashStatic;
@@ -15,9 +16,13 @@ var _ = require('lodash') as LoDashStatic;
 export class TableCtrl extends ViewModelBase {
 
     table = wx.property<Table>(new Table('')) ;
-    
-    constructor(dataSource: DataSource) {
+
+    pages = new Pages(this.dataSource);
+
+    constructor(private dataSource: DataSource) {
         super();
+
+        this.disposables.add(this.pages);
 
         this.onColumnIndexChanged = this.onColumnIndexChanged.bind(this) ;
         
@@ -49,7 +54,7 @@ export class TableCtrl extends ViewModelBase {
         column.commandAction = (col:Column /*, parameter: any */)=> {
             col.table.toggleRowSelection();
         };
-        
+
         columns.push(column);
 
         
@@ -72,11 +77,6 @@ export class TableCtrl extends ViewModelBase {
             this.addSubscription(column.sortDirection.changed.select(x=> column), this.onColumnSortDirectionChanged);
 
             this.addSubscription(column.visibility.changed.take(1),()=>{
-
-                /*if(column.visibility()!= Visibility.visible){
-                    column.filterText("")
-                }*/
-
                 layouts.save(this.table());
             })
         });
@@ -232,6 +232,7 @@ export class TableCtrl extends ViewModelBase {
         //Single Selection
         this.onNextEvent("selected-row", selected && selected.length > 0 ? row : null )
     };
+
      
-} 
+}
 

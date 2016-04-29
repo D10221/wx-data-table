@@ -37,7 +37,7 @@
 </head>
 <body>
 <main id="main-view" class="mdl-layout__content" style="width: 100%">
-    <div data-bind="with: @dataSource" style="width: 100%">
+    <div data-bind="with: @dataSource" style="width: 100%" class="mdl-grid">
         <div  data-bind="component: { name: 'data-table' , params: $data }"></div>
     </div>
 </main>
