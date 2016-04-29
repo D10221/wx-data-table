@@ -105,6 +105,17 @@ export class Column extends TableElement {
         return !this.isDisabledFeature(featureKey);
     }
 
+    /***
+     * Apply at cell configuration time , arbitrary operation to cell before it's added to the row 
+     */
     configureCell: (cell: Cell) => void ;
+
+    /***
+     * at Runtime execs aommandAction with provided parameter + <Column>this  on UI request
+     * @type {ICommand<any>}
+     */
+    command = wx.command((parameter)=> this.commandAction(this,parameter));
+    
+    commandAction : (c:Column, x:any)=> void = (c,x)=>{ /*Do nothing*/  };
 
 }

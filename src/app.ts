@@ -7,7 +7,7 @@ import {CheckBoxViewModel, ChekBoxContext} from "./wx-data-table/CheckBox";
 import {Row} from "./wx-data-table/Row";
 
 
-declare var componentHandler : any ;
+declare var componentHandler : { upgradeAllRegistered : () => void } ;
 
 wx.app.devModeEnable();
 
@@ -41,8 +41,9 @@ class App extends ViewModelBase {
         this.hookSubscriptions.add(
             vm.when('selected-row')
                 .subscribe(event=> {
-                    console.log(`Row Selected: ${(event.args.value as Row).key}`);
-                }))
+                    var key = event.args.value ? (event.args.value as Row).key : 'none';
+                    console.log(`Row Selected: ${key}`);
+                }));
 
         this.hookSubscriptions.add(
             vm.when('selected-rows')

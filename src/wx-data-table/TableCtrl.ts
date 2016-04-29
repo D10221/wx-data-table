@@ -38,16 +38,19 @@ export class TableCtrl extends ViewModelBase {
             .value();
 
         var column = new Column('isSelected');
+        column.parent = table;
         column.index(0) ;
         column.header = false;
         column.getter = item => false;
         column.disabledFeatures = ["isDirty"];
-        columns.push(column);
         column.configureCell = (cell)=>{
-            this.addSubscription(cell.value.changed, (value)=>{
-               cell.row.isSelected(value as boolean);
-            });
+            this.addTwoWaySubscribtion(cell.value, cell.row.isSelected);
         };
+        column.commandAction = (col:Column /*, parameter: any */)=> {
+            col.table.toggleRowSelection();
+        };
+        
+        columns.push(column);
 
         
         table.columns.addRange(columns);
@@ -224,12 +227,11 @@ export class TableCtrl extends ViewModelBase {
     onRowSelectionChanged : (row:Row) => void = (row)=>{
 
         var selected = _.filter((row.table.elements.toArray() as Row[]), r => r.isSelected());
+        //Multiple Selection  
         this.onNextEvent("selected-rows", selected );
-        
-        if(row.isSelected()){
-            this.onNextEvent("selected-row", row);
-        }
+        //Single Selection
+        this.onNextEvent("selected-row", selected && selected.length > 0 ? row : null )
     };
-    
+     
 } 
 

@@ -17,9 +17,9 @@ export class Table extends TableElement {
     columnsLength: number = 0 ;
     elementsLength: number = 0 ;
 
-    toggleRowSelection= wx.command(()=>{
+    toggleRowSelection = ()=>{
         this.elements.forEach(this.toggleSelection);
-    });
+    };
     
     toggleSelection(e:TableElement){
         e.isSelected(!e.isSelected());
