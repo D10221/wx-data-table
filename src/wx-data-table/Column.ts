@@ -1,5 +1,6 @@
 import {TableElement} from "./TableElement";
 import {Table} from "./Table";
+import {Cell} from "./Cell";
 export class Column extends TableElement {
      
     constructor(key:string) {
@@ -103,6 +104,7 @@ export class Column extends TableElement {
     isEnabled(featureKey: string){
         return !this.isDisabledFeature(featureKey);
     }
-    
+
+    configureCell: (cell: Cell) => void ;
 
 }

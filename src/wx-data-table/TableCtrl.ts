@@ -43,12 +43,17 @@ export class TableCtrl extends ViewModelBase {
         column.getter = item => false;
         column.disabledFeatures = ["isDirty"];
         columns.push(column);
+        column.configureCell = (cell)=>{
+            this.addSubscription(cell.value.changed, (value)=>{
+               cell.row.isSelected(value as boolean);
+            });
+        };
 
         
         table.columns.addRange(columns);
         
         var rows = dataSource.items.map(item=> this.toRow(table, item ));
-                 
+
         table.elements.addRange(rows);
         
         table.columns.forEach(column=> {
@@ -76,6 +81,7 @@ export class TableCtrl extends ViewModelBase {
         this.table(table);
     }
 
+    
     onColumnSortDirectionChanged(column: Column){
         var table = column.table;
                 
@@ -140,6 +146,10 @@ export class TableCtrl extends ViewModelBase {
         
         cell.visibility(column.visibility());
 
+        if(column.configureCell){
+            column.configureCell(cell);
+        }
+        
         this.addTwoWaySubscribtion(column.visibility, cell.visibility);
 
         this.addTwoWaySubscribtion(column.index, cell.index);
@@ -147,7 +157,7 @@ export class TableCtrl extends ViewModelBase {
         this.addSubscription(cell.isSelected.changed.select(x=> cell), this.onCellSelected);
 
         this.addSubscription(cell.isEditing.changed.select(x=> cell), this.onCellisEditingChanged);
-
+                
         this.disposables.add(cell);
 
         return cell ;
@@ -155,12 +165,14 @@ export class TableCtrl extends ViewModelBase {
          
     toRow( table:Table , item:{} ) : Row {
         
-        var row = new Row(`${table.key}_row_${table.elements.length()}`);
+        var row = new Row(`${table.key}_row_${table.elementsLength++}`);
          
         var cells = table.columns.map(column=> this.toCell(row, column , item ));
 
         row.elements.addRange(cells);
         row.parent = table;
+        this.addSubscription(row.isSelected.changed.select(x=> row), this.onRowSelectionChanged);
+
         return row;
     }
 
@@ -183,7 +195,7 @@ export class TableCtrl extends ViewModelBase {
     getKeys(dataSource:DataSource): string[] {
 
         var first = dataSource && dataSource.items ? dataSource.items[0] : {} ;
-        // columns.push( new Column('isSelected'));
+        
         var keys= [];
         for(var key in first){
             keys.push(key)
@@ -192,18 +204,32 @@ export class TableCtrl extends ViewModelBase {
         return keys;
     }
 
-    onCellSelected(cell:Cell){
+    onCellSelected: (cell:Cell) =>void = (cell) => {
         var row = (cell.parent as Row);
-        row.isSelected(_.some(row.elements.toArray() as Cell[], x=> x.isSelected()));
-    }
+        var isSelected = _.some(row.elements.toArray() as Cell[], x=> x.isSelected());
+        row.isSelected(isSelected);
+        this.onNextEvent('cell-selected', cell);
+    };
 
-    onCellisEditingChanged(cell: Cell){
+    onCellisEditingChanged: (cell: Cell) => void = (cell) => {
         var row = (cell.parent as Row);
         ((row.parent as Table).elements.toArray() as Row[])
             .forEach(row=> 
                 _.filter((row.elements.toArray() as Cell[]), c=>c.id!= cell.id).forEach(c=>c.isEditing(false))
-            )
+            );
+        
+        this.onNextEvent('cell-editing', cell);
     }
+
+    onRowSelectionChanged : (row:Row) => void = (row)=>{
+
+        var selected = _.filter((row.table.elements.toArray() as Row[]), r => r.isSelected());
+        this.onNextEvent("selected-rows", selected );
+        
+        if(row.isSelected()){
+            this.onNextEvent("selected-row", row);
+        }
+    };
     
 } 
 

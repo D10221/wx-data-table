@@ -22,11 +22,15 @@ export class Cell extends TableElement {
 
     private _column ;
     
-    private get column(): Column {
+    get column(): Column {
         return this._column || (
-                this._column = _.find(((this.parent as Row).parent as Table).columns.toArray(),
+                this._column = _.find(this.row.table.columns.toArray(),
                     c=>c.key == this.key)
             );
+    }
+    
+    get row():Row {
+        return (this.parent as Row)
     }
 
     isDirty = wx.property(false);

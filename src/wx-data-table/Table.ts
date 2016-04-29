@@ -15,5 +15,6 @@ export class Table extends TableElement {
     }
 
     columnsLength: number = 0 ;
+    elementsLength: number = 0 ;
 
 }

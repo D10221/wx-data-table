@@ -4,6 +4,7 @@ import {DataSource, Visibility} from "./wx-data-table/interfaces";
 import {TableCtrl} from "./wx-data-table/TableCtrl";
 import {ViewModelBase} from "./wx-data-table/viewModelBase";
 import {CheckBoxViewModel, ChekBoxContext} from "./wx-data-table/CheckBox";
+import {Row} from "./wx-data-table/Row";
 
 
 declare var componentHandler : any ;
@@ -19,25 +20,45 @@ class App extends ViewModelBase {
     hook = vm=> {
         
         this.tableCtrl = vm;
+        this.hookSubscriptions.dispose();
+        this.hookSubscriptions = new Rx.CompositeDisposable();
         
-        vm.when('postBindingInit').take(1).subscribe(()=>{
-
+        this.hookSubscriptions.add(vm.when('postBindingInit').take(1)
+            .subscribe(()=>{
                 componentHandler.upgradeAllRegistered()
-        });
+            }));
         
-        vm.when('table-layout-changed').take(1).subscribe(()=>{
-            var dataSource = this.dataSource();
-            this.dataSource({
-                key: dataSource.key,    
-                items: dataSource.items,
-                hook: this.hook
-            });
-        });
-    };
+        this.hookSubscriptions.add(vm.when('table-layout-changed').take(1)
+            .subscribe(()=>{
+                var dataSource = this.dataSource();
+                this.dataSource({
+                    key: dataSource.key,
+                    items: dataSource.items,
+                    hook: this.hook
+                });
+            }));
+        
+        this.hookSubscriptions.add(
+            vm.when('selected-row')
+                .subscribe(event=> {
+                    console.log(`Row Selected: ${(event.args.value as Row).key}`);
+                }))
 
+        this.hookSubscriptions.add(
+            vm.when('selected-rows')
+                .subscribe(event=> {
+                    var keys = _.chain(event.args.value as Row[])
+                        .map(x=> x.key)
+                        .join(',')
+                        .value();                        
+                    console.log(`Many Row Selected: ${keys}`);
+                }))
+    };
+    
+    hookSubscriptions= new Rx.CompositeDisposable();
+    
     constructor(){
         super();
-        
         
         
         fetch('../data/materials.json')

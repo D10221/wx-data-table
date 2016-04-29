@@ -5,6 +5,7 @@ import {TableElement} from "./TableElement";
 import {Column} from "./Column";
 import {Visibility} from "./interfaces";
 import {Cell} from "./Cell";
+import {Table} from "./Table";
 
 export class Row extends TableElement {
 
@@ -32,4 +33,7 @@ export class Row extends TableElement {
         this.visibility(visible? Visibility.visible : Visibility.hidden );
     }
     
+    get table() : Table {
+        return this.parent as Table;
+    }
 }
