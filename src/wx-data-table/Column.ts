@@ -53,7 +53,7 @@ export class Column extends TableElement {
             var next :number = this.index() + 1;
 
             //Last position Reserved 
-            if( next >= this.table.columns.length()  ) {
+            if( next >= this.table.columns.length() - 1 ) {
                 return ;
             }
 

@@ -52,7 +52,9 @@
         </div>
     </div>
     <div data-bind="if: key == 'isSelected' ">
-        <i class="material-icons"> swap_vert</i>
+        <button class="mdl-button mdl-js-button mdl-button--icon" data-bind="command: table.toggleRowSelection">
+            <i class="material-icons" > swap_vert</i>
+        </button>
     </div>
 
 </template>
