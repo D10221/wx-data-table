@@ -1,6 +1,6 @@
 ///<reference path="reference.d.ts"/>
 
-import {DataSource, Visibility, PageRequest, PageRequestType} from "./wx-data-table/interfaces";
+import {DataSource, Visibility, PageRequest, PageRequestType, EventArgs} from "./wx-data-table/interfaces";
 import {TableCtrl} from "./wx-data-table/TableCtrl";
 import {ViewModelBase} from "./wx-data-table/viewModelBase";
 import {CheckBoxViewModel, ChekBoxContext} from "./wx-data-table/CheckBox";
@@ -27,32 +27,26 @@ class App extends ViewModelBase {
 
     tableCtrl:ViewModelBase;
 
-    hook = vm=> {
+    Onloaded = (controller: TableCtrl )=> {
 
-        this.tableCtrl = vm;         
+        this.tableCtrl = controller;         
         
         this.hookSubscriptions = this.reneSubscriptions(this.hookSubscriptions,
            [
-               vm.when('postBindingInit').take(1)
+               controller.when('postBindingInit').take(1)
                    .subscribe(()=> {
                        componentHandler.upgradeAllRegistered()
                    }),
-               vm.when('table-layout-changed').take(1)
-                   .subscribe(()=> {
-                       var dataSource = this.dataSource();
-                       this.dataSource({
-                           key: dataSource.key,
-                           items: dataSource.items,
-                           hook: this.hook
-                       });
-                   }),
-               vm.when('selected-row')
+               //--
+               controller.when('table-layout-changed').take(1).subscribe(this.loadData),
+               //--
+               controller.when('selected-row')
                    .subscribe(event=> {
                        var key = event.args.value ? (event.args.value as Row).key : 'none';
                        console.log(`Row Selected: ${key}`);
                    }),
                //--
-               vm.when('selected-rows')
+               controller.when('selected-rows')
                    .subscribe(event=> {
                        var keys = _.chain(event.args.value as Row[])
                            .map(x=> x.key)
@@ -63,7 +57,7 @@ class App extends ViewModelBase {
                // --
                // pages Simply forwards the request back as events
                // Do the service call , or whatever , and send back the chuck of pages 
-               vm.pages
+               controller.pages
                    .onPageQuest(PageRequestType.next)
                    .subscribe( (x: PageRequest) => {
                        this.currentPage++;
@@ -71,7 +65,7 @@ class App extends ViewModelBase {
                        this.loadData();
                }),
                //--
-               vm.pages
+               controller.pages
                    .onPageQuest(PageRequestType.prev)
                    .subscribe( (x: PageRequest) => {
                        this.currentPage--;
@@ -79,7 +73,7 @@ class App extends ViewModelBase {
                        this.loadData();
                }),
                //--
-               vm.pages
+               controller.pages
                    .onPageQuest(PageRequestType.page)
                    .subscribe( (x:PageRequest )=> {
                        this.currentPage = x.next;    
@@ -92,25 +86,46 @@ class App extends ViewModelBase {
 
     hookSubscriptions = new Rx.CompositeDisposable();
 
-    loadData(data?:any[]) {
-        
-        if (!data) {
+    loadData(e?:EventArgs);
+    loadData(data?:any[]) ;
+    loadData(x?:any){
+        if(_.isArray(x)){
+            this.dataSource({
+                key: "materials",
+                items: x /*As data[]*/,
+                onLoaded: this.asObserver,
+                pages: {
+                    count: 4,
+                    current: this.currentPage
+                },
+            });
+            return;
+        }
+        if (!x || this.isEventArgs(x))  {
             fetch('../data/materials.json')
                 .then(r=>r.json())
                 .then(this.loadData);
             return;
         }
-
-        this.dataSource({
-            key: "materials",
-            items: data,
-            hook: this.hook,
-            pages: {
-                count: 4,
-                current: this.currentPage
-            },
-        });
     }
+
+    /***
+     * if quacks!
+     * @param x
+     * @returns {boolean}
+     */
+    private isEventArgs(x:any) {
+        return (x as EventArgs).sender && (x as EventArgs).args;
+    }
+    
+    onError(e){
+        console.log(`TableCtrl: Error: ${e}`);
+    }
+    
+    get asObserver() :Rx.Observer<TableCtrl> {
+        return Rx.Observer.create<TableCtrl>(this.Onloaded, this.onError)
+    } 
+    
     currentPage =  0;
 
     data:any[] = [];

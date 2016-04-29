@@ -1,11 +1,13 @@
 import {ViewModelBase} from "./viewModelBase";
+import {TableCtrl} from "./TableCtrl";
 
 export interface DataSource {
     key:string;
     items: any[] ;
-    hook?(viewModel: ViewModelBase);
+    onLoaded? : Rx.Observer<TableCtrl>;
     pages?: PageData
 }
+
 export interface PageData {
     count: number ;
     current: number ;

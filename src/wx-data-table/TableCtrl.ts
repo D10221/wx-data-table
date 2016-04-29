@@ -28,8 +28,8 @@ export class TableCtrl extends ViewModelBase {
         
         if(!dataSource || !dataSource.key || !dataSource.items || dataSource.items.length <1 ) return ;
 
-        if(dataSource.hook ){
-            dataSource.hook(this);
+        if(dataSource.onLoaded ){
+            dataSource.onLoaded.onNext(this);
         }
 
         var table  = new Table(dataSource.key);
