@@ -1,10 +1,8 @@
-import {ViewModelBase} from "./viewModelBase";
-import {TableCtrl} from "./TableCtrl";
 
 export interface DataSource {
     key:string;
     items: any[] ;
-    onLoaded? : Rx.Observer<TableCtrl>;
+    observer? : Rx.Observer<EventArgs>;
     pages?: PageData
 }
 

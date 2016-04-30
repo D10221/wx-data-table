@@ -1,6 +1,7 @@
 import {ViewModelBase} from "../../src/wx-data-table/viewModelBase";
 
 import {Visibility, TableElementLayout, Func} from "../../src/wx-data-table/interfaces";
+import {layouts} from "./Layouts";
 
 export class ComponentCommand {
 
@@ -104,6 +105,8 @@ export class TableElement extends ViewModelBase implements Rx.IDisposable {
             element.setLayout(_.find(layout.elements, l=>l.key == element.key));
         }
     }
+    
+    dropLayout = wx.command(()=> { this.onNextEvent('drop-layout', this) ; });
 }
 
 export function setSilently<T extends TableElement,TR>(e:T , func:Func<T,wx.IObservableProperty<TR>>, value: TR) : void {

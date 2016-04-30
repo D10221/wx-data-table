@@ -4,7 +4,7 @@ import {TableElement} from "./TableElement";
 
 class Layouts {
 
-    restore(table:Table) {
+    restore(table:TableElement) {
         var x = localStorage.getItem(`table_${table.key}`);
         if(x){
             return table.setLayout(x);
@@ -14,6 +14,10 @@ class Layouts {
     save(table:TableElement){
         var layout = table.getLayout();
         localStorage.setItem(`table_${table.key}`, JSON.stringify(layout));
+    }
+
+    drop(table: TableElement){
+        localStorage.removeItem(`table_${table.key}`);
     }
 
     getTable(key:string) : TableElementLayout  {

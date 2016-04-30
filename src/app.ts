@@ -1,10 +1,11 @@
 ///<reference path="reference.d.ts"/>
 
-import {DataSource, Visibility, PageRequest, PageRequestType, EventArgs} from "./wx-data-table/interfaces";
+import {DataSource, Visibility, PageRequest, PageRequestType, EventArgs, KeyValue} from "./wx-data-table/interfaces";
 import {TableCtrl} from "./wx-data-table/TableCtrl";
 import {ViewModelBase} from "./wx-data-table/viewModelBase";
 import {CheckBoxViewModel, ChekBoxContext} from "./wx-data-table/CheckBox";
 import {Row} from "./wx-data-table/Row";
+import {isEventArgs} from "./wx-data-table/Util";
 
 /***
  * Material design lite
@@ -13,120 +14,136 @@ declare var componentHandler:{ upgradeAllRegistered:() => void };
 
 wx.app.devModeEnable();
 
+
 class App extends ViewModelBase {
+
+    get controllerEvents():Rx.Observable<EventArgs> {
+        return this.listener.asObservable();
+    }
+    
+    listener = new Rx.Subject<EventArgs>();
 
     constructor() {
         super();
+
+        this.loadData= (x) => {
+            
+            if (_.isArray(x)) {
+                this.dataSource({
+                    key: "materials",
+                    items: x /*As data[]*/,
+                    observer: this.listener,
+                    pages: {
+                        count: 4,
+                        current: this.currentPage
+                    },
+                });
+                return;
+            }
+            if (!x || isEventArgs(x)) {
+                fetch('../data/materials.json')
+                    .then(r=>r.json())
+                    .then(x=>
+                        this.loadData(x)
+                    );
+                return;
+            }
+        };
+
+        // OPTIONAL:
+        this.controllerEvents
+            .where(e=>e.args.key == 'loaded')
+            .select(e=> e.sender as TableCtrl)
+            .subscribe(controller => 
+                this.tableCtrl = controller
+            );
+
+        // OPTIONAL:
+        this.controllerEvents
+            .where(e=> e.args.key == 'postBindingInit')
+            //.take(1)
+            .subscribe(()=> {
+                componentHandler.upgradeAllRegistered()
+            });
+        
+        // NOTE: this is required ,
+        // current UI implementations requiress
+        // to rebuild the table , this should be done by the
+        // table controller , instead of here 
+        this.controllerEvents
+            .where(e=> e.args.key == 'layout-changed')
+            //.select(e=>e.value as EventArgs)
+            //.take(1)
+            .subscribe(this.loadData);
+
+        // OPTIONAL: 
+        this.controllerEvents
+            .where(e=> e.args.key == 'selected-row')
+            .select(event => event.args.value as Row)
+            .subscribe(row => {
+                var key = row ? row.key : 'none';
+                console.log(`Row Selected: ${key}`);
+            });
+        
+        // OPTIONAL:
+        this.controllerEvents.where(e=> e.args.key == 'selected-rows')
+            .select(event => event.args.value as Row[])
+            .subscribe(rows=> {
+                var keys = _.chain(rows)
+                    .map(x=> x.key)
+                    .join(',')
+                    .value();
+                console.log(`Many Row Selected: ${keys}`);
+            });
+
+        // OPTIONAL:
+        this.controllerEvents.
+            where(e=> e.args.key == "PageRequest")
+            .select(e=>e.args.value as PageRequest)
+            .where( request=> request.type ==PageRequestType.next)
+            .subscribe((x:PageRequest) => {
+                this.currentPage++;
+                console.log(`from ${x.current} to next page ... ${this.currentPage}`);
+                this.loadData();
+            });
+        
+        // OPTIONAL:
+        this.controllerEvents.
+            where(e=> e.args.key == "PageRequest")
+            .select(e=>e.args.value as PageRequest)
+            .where( request=> request.type ==PageRequestType.prev)
+            .subscribe((x:PageRequest) => {
+                this.currentPage--;
+                console.log(`from ${x.current} to prev page ... ${this.currentPage}`);
+                this.loadData();
+            });
+
+        // OPTIONAL:
+        this.controllerEvents
+            .where(e=> e.args.key == "PageRequest")
+            .select(e=>e.args.value as PageRequest)
+            .where( request=> request.type == PageRequestType.page)
+            .subscribe((x:PageRequest)=> {
+                this.currentPage = x.next;
+                console.log(`from ${x.current} goto page ${this.currentPage }...`);
+                this.loadData();
+            });
         
         this.loadData = this.loadData.bind(this);
-        
+
         this.loadData();
     }
 
     dataSource = wx.property<DataSource>();
 
     tableCtrl:ViewModelBase;
-
-    Onloaded = (controller: TableCtrl )=> {
-
-        this.tableCtrl = controller;         
-        
-        this.hookSubscriptions = this.reneSubscriptions(this.hookSubscriptions,
-           [
-               controller.when('postBindingInit').take(1)
-                   .subscribe(()=> {
-                       componentHandler.upgradeAllRegistered()
-                   }),
-               //--
-               controller.when('table-layout-changed').take(1).subscribe(this.loadData),
-               //--
-               controller.when('selected-row')
-                   .subscribe(event=> {
-                       var key = event.args.value ? (event.args.value as Row).key : 'none';
-                       console.log(`Row Selected: ${key}`);
-                   }),
-               //--
-               controller.when('selected-rows')
-                   .subscribe(event=> {
-                       var keys = _.chain(event.args.value as Row[])
-                           .map(x=> x.key)
-                           .join(',')
-                           .value();
-                       console.log(`Many Row Selected: ${keys}`);
-                   }),
-               // --
-               // pages Simply forwards the request back as events
-               // Do the service call , or whatever , and send back the chuck of pages 
-               controller.pages
-                   .onPageQuest(PageRequestType.next)
-                   .subscribe( (x: PageRequest) => {
-                       this.currentPage++;
-                       console.log(`from ${x.current} to next page ... ${this.currentPage}`);
-                       this.loadData();
-               }),
-               //--
-               controller.pages
-                   .onPageQuest(PageRequestType.prev)
-                   .subscribe( (x: PageRequest) => {
-                       this.currentPage--;
-                       console.log(`from ${x.current} to prev page ... ${this.currentPage}`);
-                       this.loadData();
-               }),
-               //--
-               controller.pages
-                   .onPageQuest(PageRequestType.page)
-                   .subscribe( (x:PageRequest )=> {
-                       this.currentPage = x.next;    
-                       console.log(`from ${x.current} goto page ${this.currentPage }...`);
-                       this.loadData();
-               }),
-           ]
-        );
-    };
-
-    hookSubscriptions = new Rx.CompositeDisposable();
+    
 
     loadData(e?:EventArgs);
     loadData(data?:any[]) ;
-    loadData(x?:any){
-        if(_.isArray(x)){
-            this.dataSource({
-                key: "materials",
-                items: x /*As data[]*/,
-                onLoaded: this.asObserver,
-                pages: {
-                    count: 4,
-                    current: this.currentPage
-                },
-            });
-            return;
-        }
-        if (!x || this.isEventArgs(x))  {
-            fetch('../data/materials.json')
-                .then(r=>r.json())
-                .then(this.loadData);
-            return;
-        }
-    }
-
-    /***
-     * if quacks!
-     * @param x
-     * @returns {boolean}
-     */
-    private isEventArgs(x:any) {
-        return (x as EventArgs).sender && (x as EventArgs).args;
-    }
-    
-    onError(e){
-        console.log(`TableCtrl: Error: ${e}`);
-    }
-    
-    get asObserver() :Rx.Observer<TableCtrl> {
-        return Rx.Observer.create<TableCtrl>(this.Onloaded, this.onError)
-    } 
-    
-    currentPage =  0;
+    loadData(x?:any) {};
+     
+    currentPage = 0;
 
     data:any[] = [];
 }

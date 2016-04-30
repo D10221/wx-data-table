@@ -1,42 +1,68 @@
-
-import {DataSource, EventArgs} from "./interfaces";
+import {DataSource, EventArgs, KeyValue} from "./interfaces";
 import {Table} from "./Table";
 import {ViewModelBase} from "./viewModelBase";
-import {layouts } from "./Layouts";
+import {layouts} from "./Layouts";
 import {Column} from "./Column";
 
 import LoDashStatic = _.LoDashStatic;
 import {Row} from "./Row";
 import {Cell} from "./Cell";
 import {Pages} from "./Pages";
+import {TableElement} from "./TableElement";
 
 
 var _ = require('lodash') as LoDashStatic;
 
 export class TableCtrl extends ViewModelBase {
 
-    table = wx.property<Table>(new Table('')) ;
+    table = wx.property<Table>(new Table(''));
 
     pages = new Pages(this.dataSource);
 
-    constructor(private dataSource: DataSource) {
+    publishTo(observer: Rx.Observer<EventArgs>, data: KeyValue){
+        if(observer) {
+            observer.onNext({sender: this, args: data } );
+        }
+    }
+    
+    constructor(private dataSource:DataSource) {
         super();
 
         this.disposables.add(this.pages);
 
-        this.onColumnIndexChanged = this.onColumnIndexChanged.bind(this) ;
-        
-        if(!dataSource || !dataSource.key || !dataSource.items || dataSource.items.length <1 ) return ;
+        this.onColumnIndexChanged = this.onColumnIndexChanged.bind(this);
 
-        if(dataSource.onLoaded ){
-            dataSource.onLoaded.onNext(this);
+        if (!dataSource || !dataSource.key || !dataSource.items || dataSource.items.length < 1) return;
+
+        if (dataSource.observer) {
+            //If observer provided : redirect events 
+            
+            //this.observer = dataSource.observer;
+            //NOTE: Overrides ViewModelBase's onNextEvent 
+            this.onNextEvent = (key,value)=> {
+                dataSource.observer.onNext({sender: this, args: { key: key, value: value }});
+            };
+
+            //NOTE: Overrides ViewModelBase's onNextEvent
+            this.pages.onNextEvent = (key,value)=> {
+                dataSource.observer.onNext({
+                    sender: this.pages,
+                    args:{
+                        key: key,
+                        value: value
+                    }
+                })
+            }
         }
 
-        var table  = new Table(dataSource.key);
-
-        table.header = dataSource.key;
+        var table = new Table(dataSource.key);
         
-        var columns : Column[] = _
+        
+        this.addSubscription(table.events.changed.where(e=> e.args.key == 'drop-layout'), this.onDropLayout);
+        
+        table.header = dataSource.key;
+
+        var columns:Column[] = _
             .chain(this.getKeys(dataSource))
             .map(key=> this.ToColumn(table, key))
             .sortBy(c=> c.index())
@@ -44,11 +70,11 @@ export class TableCtrl extends ViewModelBase {
 
         var column = new Column('isSelected');
         column.parent = table;
-        column.index(0) ;
+        column.index(0);
         column.header = false;
         column.getter = item => false;
         column.disabledFeatures = ["isDirty"];
-        column.configureCell = (cell)=>{
+        column.configureCell = (cell)=> {
             this.addTwoWaySubscribtion(cell.value, cell.row.isSelected);
         };
         column.commandAction = (col:Column /*, parameter: any */)=> {
@@ -57,102 +83,107 @@ export class TableCtrl extends ViewModelBase {
 
         columns.push(column);
 
-        
+
         table.columns.addRange(columns);
-        
-        var rows = dataSource.items.map(item=> this.toRow(table, item ));
+
+        var rows = dataSource.items.map(item=> this.toRow(table, item));
 
         table.elements.addRange(rows);
-        
+
         table.columns.forEach(column=> {
-                         
+
             this.addSubscription(
                 column.when('column-index-changed')
                     .where(x=> !this.saving)
                     .take(1),
                 x=> this.onColumnIndexChanged(x));
-            
+
             this.addSubscription(column.filterText.changed.select(x=> column), this.onColumnTextFilterChanged);
-            
+
             this.addSubscription(column.sortDirection.changed.select(x=> column), this.onColumnSortDirectionChanged);
 
-            this.addSubscription(column.visibility.changed.take(1),()=>{
+            this.addSubscription(column.visibility.changed.take(1), ()=> {
                 layouts.save(this.table());
             })
         });
-        
+
         this.table(table);
     }
 
-    
-    onColumnSortDirectionChanged(column: Column){
+
+    onColumnSortDirectionChanged(column:Column) {
         var table = column.table;
-                
+
         var find = function (row:Row):any {
             return row.findCellValueByKey(column.key);
         };
 
         var r = _.sortBy(table.elements.toArray(), find);
-        r = column.sortDirection() == "desc" ? _.reverse(r) : r ;
+        r = column.sortDirection() == "desc" ? _.reverse(r) : r;
         table.elements.clear();
 
         table.elements.addRange(r);
     }
-    
-    onColumnTextFilterChanged(column:Column){
+
+    onColumnTextFilterChanged(column:Column) {
         var table = column.table;
         for (var row of table.elements.toArray() as Row[]) {
             row.setVisble(column);
         }
     }
-    
-    
+
+
     saving = false;
-        
-    onColumnIndexChanged( event: EventArgs) :void {
+
+    onColumnIndexChanged(event:EventArgs):void {
 
         this.saving = true;
 
-        var column  = event.sender as Column ;
+        var column = event.sender as Column;
 
         var prev = event.args.value;
-        
+
         var table = column.parent as Table;
 
-        this.propagateColumnIndexChange(table, column, prev );
+        this.propagateColumnIndexChange(table, column, prev);
 
         layouts.save(table);
 
-        this.onNextEvent("table-layout-changed", true);
+        this.onNextEvent("layout-changed", true);
     }
 
-    propagateColumnIndexChange(table: Table, current: Column , prev:number) {
-        
+    propagateColumnIndexChange(table:Table, current:Column, prev:number) {
+        // this is tricky and possibly means is a bad idea 
+        // Note: 1st: there is two way binding between column index and cell index 
+        // Note: 2nd: current index CHANGED to desired index , did it ? 
+        // find who has the desired index and set it's index to the previous index 
+        // where previous index is previous index of the CHANGED column 
+        // Column A index was 0 , we moved it to 1 , find previous coilumn with index 1 and set it to 0  
         var found = _.find(table.columns.toArray(),
             c=> c.index() == current.index() && c.key != current.key);
         found.index(prev);
         return;
     }
-    
+
     // item[column.key]
 
-    
-    toCell(row: Row, column: Column, item: {} ) : Cell {
-        
+
+    toCell(row:Row, column:Column, item:{}):Cell {
+
         var cellValue = column.getter(item);
-                 
-        var cell = new Cell(column.key, cellValue );
-       
+
+        var cell = new Cell(column.key, cellValue);
+
         cell.index(column.index());
-        
+
         cell.parent = row;
-        
+
         cell.visibility(column.visibility());
 
-        if(column.configureCell){
+        if (column.configureCell) {
             column.configureCell(cell);
         }
-        
+
         this.addTwoWaySubscribtion(column.visibility, cell.visibility);
 
         this.addTwoWaySubscribtion(column.index, cell.index);
@@ -160,17 +191,17 @@ export class TableCtrl extends ViewModelBase {
         this.addSubscription(cell.isSelected.changed.select(x=> cell), this.onCellSelected);
 
         this.addSubscription(cell.isEditing.changed.select(x=> cell), this.onCellisEditingChanged);
-                
+
         this.disposables.add(cell);
 
-        return cell ;
+        return cell;
     }
-         
-    toRow( table:Table , item:{} ) : Row {
-        
+
+    toRow(table:Table, item:{}):Row {
+
         var row = new Row(`${table.key}_row_${table.elementsLength++}`);
-         
-        var cells = table.columns.map(column=> this.toCell(row, column , item ));
+
+        var cells = table.columns.map(column=> this.toCell(row, column, item));
 
         row.elements.addRange(cells);
         row.parent = table;
@@ -179,60 +210,64 @@ export class TableCtrl extends ViewModelBase {
         return row;
     }
 
-    ToColumn(table:Table, key: string) : Column {
-        
+    ToColumn(table:Table, key:string):Column {
+
         var column = new Column(key);
 
         var layout = layouts.getColumn(table.key, column.key);
         if (layout) {
             column.setLayout(layout);
-        } else{
-            column.index( table.columnsLength++ );
+        } else {
+            column.index(table.columnsLength++);
         }
 
         column.parent = table;
-        
+
         return column;
     }
-    
-    getKeys(dataSource:DataSource): string[] {
 
-        var first = dataSource && dataSource.items ? dataSource.items[0] : {} ;
-        
-        var keys= [];
-        for(var key in first){
+    getKeys(dataSource:DataSource):string[] {
+
+        var first = dataSource && dataSource.items ? dataSource.items[0] : {};
+
+        var keys = [];
+        for (var key in first) {
             keys.push(key)
         }
 
         return keys;
     }
 
-    onCellSelected: (cell:Cell) =>void = (cell) => {
+    onCellSelected:(cell:Cell) =>void = (cell) => {
         var row = (cell.parent as Row);
         var isSelected = _.some(row.elements.toArray() as Cell[], x=> x.isSelected());
         row.isSelected(isSelected);
         this.onNextEvent('cell-selected', cell);
     };
 
-    onCellisEditingChanged: (cell: Cell) => void = (cell) => {
+    onCellisEditingChanged:(cell:Cell) => void = (cell) => {
         var row = (cell.parent as Row);
         ((row.parent as Table).elements.toArray() as Row[])
-            .forEach(row=> 
-                _.filter((row.elements.toArray() as Cell[]), c=>c.id!= cell.id).forEach(c=>c.isEditing(false))
+            .forEach(row=>
+                _.filter((row.elements.toArray() as Cell[]), c=>c.id != cell.id).forEach(c=>c.isEditing(false))
             );
-        
+
         this.onNextEvent('cell-editing', cell);
     }
 
-    onRowSelectionChanged : (row:Row) => void = (row)=>{
+    onRowSelectionChanged:(row:Row) => void = (row)=> {
 
         var selected = _.filter((row.table.elements.toArray() as Row[]), r => r.isSelected());
         //Multiple Selection  
-        this.onNextEvent("selected-rows", selected );
+        this.onNextEvent("selected-rows", selected);
         //Single Selection
-        this.onNextEvent("selected-row", selected && selected.length > 0 ? row : null )
+        this.onNextEvent("selected-row", selected && selected.length > 0 ? row : null)
     };
+    
+    onDropLayout: (e: EventArgs) => void = (e)=> {
+        layouts.drop(e.sender as TableElement);
+        this.onNextEvent('layout-changed', true);
+    }
 
-     
 }
 
