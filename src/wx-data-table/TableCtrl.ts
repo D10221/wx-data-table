@@ -13,6 +13,35 @@ import {TableElement} from "./TableElement";
 
 var _ = require('lodash') as LoDashStatic;
 
+class Builder<T> {
+
+    constructor(public value:T) {
+
+    }
+
+    with: (func: (t:T)=> void )=>  Builder<T> = (func) => {
+        func(this.value);
+        return this;
+    }
+}
+
+var inBuiltColumns: Column[] = [
+    new Builder(new Column('isSelected')).with(column=> {
+        //column.parent = table;
+        column.index(0);
+        column.header = false;
+        column.getter = item => false;
+        column.disabledFeatures = ["isDirty"];
+        column.configureCell = (cell)=> {
+            column.addTwoWaySubscribtion(cell.value, cell.row.isSelected);
+        };
+        column.commandAction = (col:Column /*, parameter: any */)=> {
+            col.table.toggleRowSelection();
+        };
+        return column;
+    }).value
+];
+
 export class TableCtrl extends ViewModelBase {
 
     table = wx.property<Table>(new Table(''));
@@ -57,33 +86,12 @@ export class TableCtrl extends ViewModelBase {
 
         var table = new Table(dataSource.key);
         
-        
         this.addSubscription(table.events.changed.where(e=> e.args.key == 'drop-layout'), this.onDropLayout);
         
         table.header = dataSource.key;
 
-        var columns:Column[] = _
-            .chain(this.getKeys(dataSource))
-            .map(key=> this.ToColumn(table, key))
-            .sortBy(c=> c.index())
-            .value();
-
-        var column = new Column('isSelected');
-        column.parent = table;
-        column.index(0);
-        column.header = false;
-        column.getter = item => false;
-        column.disabledFeatures = ["isDirty"];
-        column.configureCell = (cell)=> {
-            this.addTwoWaySubscribtion(cell.value, cell.row.isSelected);
-        };
-        column.commandAction = (col:Column /*, parameter: any */)=> {
-            col.table.toggleRowSelection();
-        };
-
-        columns.push(column);
-
-
+        var columns = this.buildColumns(table, dataSource);
+        
         table.columns.addRange(columns);
 
         var rows = dataSource.items.map(item=> this.toRow(table, item));
@@ -112,6 +120,7 @@ export class TableCtrl extends ViewModelBase {
 
 
     onColumnSortDirectionChanged(column:Column) {
+        
         var table = column.table;
 
         var find = function (row:Row):any {
@@ -165,7 +174,23 @@ export class TableCtrl extends ViewModelBase {
         return;
     }
 
-    // item[column.key]
+    buildColumns: (table:Table, dataSource: DataSource) => Column[] = (table,dataSource)=> {
+        
+        var columns:Column[] = [];
+
+        for(var column of inBuiltColumns){
+            column.parent = table;
+            columns.push(column);
+        }
+
+        for(var key of this.getKeys(dataSource)){
+            var column = this.ToColumn(table, key);
+            column.parent = table;
+            columns.push(column);
+        }
+        
+        return _.sortBy(columns, c=>c.index());
+    };
 
 
     toCell(row:Row, column:Column, item:{}):Cell {
