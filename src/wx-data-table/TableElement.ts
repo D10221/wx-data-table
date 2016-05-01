@@ -117,8 +117,17 @@ export function setSilently<T extends TableElement,TR>(e:T , func:Func<T,wx.IObs
     }
 };
 
-export class InputTypes  {
+export enum InputType {
+    
+    date, number, text, checkbox
+}
 
+export class InputTypes  {
+    
+    static getString(inputType: InputType) : string {
+        return InputTypes.values[inputType]; 
+    }
+    
     static values: string [] = ['date', 'number', 'text', 'checkbox'];
 
     static any(inputType: string) : boolean  {

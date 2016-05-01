@@ -6,6 +6,7 @@ import {ViewModelBase} from "./wx-data-table/viewModelBase";
 import {CheckBoxViewModel, ChekBoxContext} from "./wx-data-table/CheckBox";
 import {Row} from "./wx-data-table/Row";
 import {isEventArgs} from "./wx-data-table/Util";
+import {InputTypes, InputType} from "./wx-data-table/TableElement";
 
 /***
  * Material design lite
@@ -14,25 +15,38 @@ declare var componentHandler:{ upgradeAllRegistered:() => void };
 
 wx.app.devModeEnable();
 
+interface Material {
+    created:string ;
+}
 
 class App extends ViewModelBase {
 
     get controllerEvents():Rx.Observable<EventArgs> {
         return this.listener.asObservable();
     }
-    
+
     listener = new Rx.Subject<EventArgs>();
 
     constructor() {
         super();
 
-        this.loadData= (x) => {
-            
+        this.loadData = (x) => {
+
             if (_.isArray(x)) {
                 this.dataSource({
                     key: "materials",
                     items: x /*As data[]*/,
                     observer: this.listener,
+                    columns: [
+                        {key: 'quantity', header: 'Quantity'},
+                        {
+                            key: 'created',
+                            //Maybe: HTML?
+                            header: 'Created',
+                            //Maybe: Expression<Cell>
+                            configureCell: (cell)=> cell.inputType = InputTypes.getString(InputType.date)
+                        }
+                    ],
                     pages: {
                         count: 4,
                         current: this.currentPage
@@ -54,7 +68,7 @@ class App extends ViewModelBase {
         this.controllerEvents
             .where(e=>e.args.key == 'loaded')
             .select(e=> e.sender as TableCtrl)
-            .subscribe(controller => 
+            .subscribe(controller =>
                 this.tableCtrl = controller
             );
 
@@ -65,7 +79,7 @@ class App extends ViewModelBase {
             .subscribe(()=> {
                 componentHandler.upgradeAllRegistered()
             });
-        
+
         // NOTE: this is required ,
         // current UI implementations requiress
         // to rebuild the table , this should be done by the
@@ -84,7 +98,7 @@ class App extends ViewModelBase {
                 var key = row ? row.key : 'none';
                 console.log(`Row Selected: ${key}`);
             });
-        
+
         // OPTIONAL:
         this.controllerEvents.where(e=> e.args.key == 'selected-rows')
             .select(event => event.args.value as Row[])
@@ -97,21 +111,19 @@ class App extends ViewModelBase {
             });
 
         // OPTIONAL:
-        this.controllerEvents.
-            where(e=> e.args.key == "PageRequest")
+        this.controllerEvents.where(e=> e.args.key == "PageRequest")
             .select(e=>e.args.value as PageRequest)
-            .where( request=> request.type ==PageRequestType.next)
+            .where(request=> request.type == PageRequestType.next)
             .subscribe((x:PageRequest) => {
                 this.currentPage++;
                 console.log(`from ${x.current} to next page ... ${this.currentPage}`);
                 this.loadData();
             });
-        
+
         // OPTIONAL:
-        this.controllerEvents.
-            where(e=> e.args.key == "PageRequest")
+        this.controllerEvents.where(e=> e.args.key == "PageRequest")
             .select(e=>e.args.value as PageRequest)
-            .where( request=> request.type ==PageRequestType.prev)
+            .where(request=> request.type == PageRequestType.prev)
             .subscribe((x:PageRequest) => {
                 this.currentPage--;
                 console.log(`from ${x.current} to prev page ... ${this.currentPage}`);
@@ -122,13 +134,13 @@ class App extends ViewModelBase {
         this.controllerEvents
             .where(e=> e.args.key == "PageRequest")
             .select(e=>e.args.value as PageRequest)
-            .where( request=> request.type == PageRequestType.page)
+            .where(request=> request.type == PageRequestType.page)
             .subscribe((x:PageRequest)=> {
                 this.currentPage = x.next;
                 console.log(`from ${x.current} goto page ${this.currentPage }...`);
                 this.loadData();
             });
-        
+
         this.loadData = this.loadData.bind(this);
 
         this.loadData();
@@ -137,12 +149,13 @@ class App extends ViewModelBase {
     dataSource = wx.property<DataSource>();
 
     tableCtrl:ViewModelBase;
-    
+
 
     loadData(e?:EventArgs);
     loadData(data?:any[]) ;
-    loadData(x?:any) {};
-     
+    loadData(x?:any) {
+    };
+
     currentPage = 0;
 
     data:any[] = [];

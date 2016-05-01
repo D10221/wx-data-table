@@ -1,9 +1,24 @@
 
+
+
+import {Column} from "./Column";
 export interface DataSource {
     key:string;
     items: any[] ;
     observer? : Rx.Observer<EventArgs>;
+    columns?: ColumnDefinition[];
     pages?: PageData
+}
+
+export interface ColumnDefinition {
+    key: string;
+    index?:number;
+    header?:any;
+    getter?:(item:{}) => any;
+    disabledFeatures?:string[];
+    configureCell?:(cell) => void;
+    commandAction?:(col:Column ,  parameter: any) => void;
+    //inputType?: string;
 }
 
 export interface PageData {

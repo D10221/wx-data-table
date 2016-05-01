@@ -1,7 +1,6 @@
 import {TableElement, InputTypes} from "./TableElement";
 import {Column} from "./Column";
 import {Row} from "./Row";
-import {Table} from "./Table";
 
 export class Cell extends TableElement {
 

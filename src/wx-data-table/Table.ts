@@ -14,7 +14,8 @@ export class Table extends TableElement {
         super(key);
     }
 
-    columnsLength: number = 0 ;
+    // /*internal */columnsLength: number = 0 ;
+    
     elementsLength: number = 0 ;
 
     toggleRowSelection = ()=>{

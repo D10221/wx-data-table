@@ -1,4 +1,4 @@
-import {DataSource, EventArgs, KeyValue} from "./interfaces";
+import {DataSource, EventArgs, KeyValue, ColumnDefinition} from "./interfaces";
 import {Table} from "./Table";
 import {ViewModelBase} from "./viewModelBase";
 import {layouts} from "./Layouts";
@@ -9,21 +9,11 @@ import {Row} from "./Row";
 import {Cell} from "./Cell";
 import {Pages} from "./Pages";
 import {TableElement} from "./TableElement";
+import {Builder} from "./Builder";
 
 
 var _ = require('lodash') as LoDashStatic;
 
-class Builder<T> {
-
-    constructor(public value:T) {
-
-    }
-
-    with: (func: (t:T)=> void )=>  Builder<T> = (func) => {
-        func(this.value);
-        return this;
-    }
-}
 
 var inBuiltColumns: Column[] = [
     new Builder(new Column('isSelected')).with(column=> {
@@ -35,7 +25,7 @@ var inBuiltColumns: Column[] = [
         column.configureCell = (cell)=> {
             column.addTwoWaySubscribtion(cell.value, cell.row.isSelected);
         };
-        column.commandAction = (col:Column /*, parameter: any */)=> {
+        column.commandAction = (col:Column , parameter: any )=> {
             col.table.toggleRowSelection();
         };
         return column;
@@ -184,13 +174,71 @@ export class TableCtrl extends ViewModelBase {
         }
 
         for(var key of this.getKeys(dataSource)){
-            var column = this.ToColumn(table, key);
-            column.parent = table;
-            columns.push(column);
+            
+            if(dataSource.columns){
+
+                var found = _.find(dataSource.columns, c=>c.key == key );
+                if (found) {
+
+                    var column = this.fromColumnDefinition(found);
+                    if(!column.index()){
+                        column.index(columns.length + 1);
+                    }
+                    column.parent = table;
+                    columns.push(column);
+
+                    continue;
+                }
+            }
+            // NotFound
+            {
+                var column = new Column(key);
+                column.parent = table;
+                column.index(columns.length+1);
+                columns.push(column);
+            }
+            
         }
         
-        return _.sortBy(columns, c=>c.index());
+        return _.chain(columns)
+            .map(column=> this.setLayout(column))
+            .sortBy(c=>c.index())
+            .value();
     };
+    
+    fromColumnDefinition(found: ColumnDefinition) : Column {
+        
+        var column = new Column(found.key);
+        
+        if(found.index){
+            column.index( found.index);
+        }
+
+        if(found.header){
+            column.header = found.header;
+        }
+
+        if(found.getter){
+            column.getter = found.getter
+        }
+
+        column.disabledFeatures = found.disabledFeatures || [];
+
+        if(found.configureCell){
+            column.configureCell = found.configureCell;
+        }
+
+        if(found.commandAction){
+            column.commandAction = found.commandAction;
+        }
+
+        // if(found.inputType){
+        //     column.inputType = found.inputType;
+        // }
+        //
+        
+        return column;
+    }
 
 
     toCell(row:Row, column:Column, item:{}):Cell {
@@ -235,19 +283,12 @@ export class TableCtrl extends ViewModelBase {
         return row;
     }
 
-    ToColumn(table:Table, key:string):Column {
-
-        var column = new Column(key);
-
-        var layout = layouts.getColumn(table.key, column.key);
+    setLayout(column: Column):Column {
+        
+        var layout = layouts.getColumn(column.table.key, column.key);
         if (layout) {
             column.setLayout(layout);
-        } else {
-            column.index(table.columnsLength++);
-        }
-
-        column.parent = table;
-
+        }        
         return column;
     }
 

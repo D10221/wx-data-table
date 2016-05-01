@@ -1,6 +1,8 @@
 import {TableElement} from "./TableElement";
 import {Table} from "./Table";
 import {Cell} from "./Cell";
+
+
 export class Column extends TableElement {
      
     constructor(key:string) {
@@ -117,5 +119,7 @@ export class Column extends TableElement {
     command = wx.command((parameter)=> this.commandAction(this,parameter));
     
     commandAction : (c:Column, x:any)=> void = (c,x)=>{ /*Do nothing*/  };
+    
+    //inputType: string;
 
 }
